@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 
 '''
-want to import this function 
 
-eg. import 'invoicerecord.py'
+eg. import 'invoicerecord.py' - test danc
 
 '''
 
@@ -15,7 +14,7 @@ class MedicationRecord():
 		self.id = int()
 		self.name = str()
 		self.common_name = str() #Acetaminophen = Tylenol
-		self.price = defaultdict({datetime.date():float()}) 
+		self.price = defaultdict({datetime.date():float()})
 								#includes history
 		self.dosage = str()
 		self.admin = str()
