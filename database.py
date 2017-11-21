@@ -19,6 +19,21 @@ from history_meta import versioned_session #make a versioned db so we can rollba
 db = SQLAlchemy(app) #create the db object in sqlalchemy
 ver_db_session = versioned_session(db.session) #wrap the db in version control
 
+#copypasta from https://stackoverflow.com/questions/6587879/how-to-elegantly-check-the-existence-of-an-object-instance-variable-and-simultan
+def get_or_create(model, **kwargs):
+	'''checks to see if an object with those properties exists in the db
+	   and returns it if it exists, otherwise returns a new object
+	   instantiated with the search **kwargs
+	'''
+    try:
+        # basically check the obj from the db, this syntax might be wrong
+        object = ver_db_session.query(model).filter(**kwargs).first()
+        assert object != None #check if we got an object back
+        return object, True #if we did, set found = True
+    except AssertionError:
+        object = model(**kwargs) #return a blank object instatiated with kwargs if not found
+        return object, False #set found to false
+
 class PersistentMedication(db.Model):
 	'''a persistent record in the database that represents a medication record'''
 	__tablename__='PersistentMedication'
@@ -78,7 +93,7 @@ class PersistentMedication(db.Model):
 		if found:
 			if match_record.name != record.name:
 				match_record.aliases.append( #checks if the name has changed and adds it as an alias
-					MedicationAlias(medication_id=match_record.id,name=record.name))
+					get_or_create(MedicationAlias,medication_id=match_record.id,name=record.name)[0])
 			match_record.history.append(
 							[MedicationHistory(medication_id=match_record.id,
 							 date=record.transactions[i][1],
@@ -129,21 +144,6 @@ class Category(db.Model):
 	name = db.Column(db.String(255))
 	medications = db.relationship("PersistentMedication", #has many medications
 		backref='category', lazy='dynamic')
-
-#copypasta from https://stackoverflow.com/questions/6587879/how-to-elegantly-check-the-existence-of-an-object-instance-variable-and-simultan
-def get_or_create(model, **kwargs):
-	'''checks to see if an object with those properties exists in the db
-	   and returns it if it exists, otherwise returns a new object
-	   instantiated with the search **kwargs
-	'''
-    try:
-        # basically check the obj from the db, this syntax might be wrong
-        object = ver_db_session.query(model).filter(**kwargs).first()
-        assert object != None #check if we got an object back
-        return object, True #if we did, set found = True
-    except AssertionError:
-        object = model(**kwargs) #return a blank object instatiated with kwargs if not found
-        return object, False #set found to false
 
 def save_persistent_record(record,ver_db_session=ver_db_session):
 	'''saves a MedicationRecord object in the db (just an alias)'''
