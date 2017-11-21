@@ -34,6 +34,13 @@ def get_or_create(model, **kwargs):
         object = model(**kwargs) #return a blank object instatiated with kwargs if not found
         return object, False #set found to false
 
+class InvoiceRecord(db.Model):
+	__tablename__="InvoiceRecord"
+	
+	id = db.Column(db.BigInteger, primary_key=True)
+	medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
+	#TODO for the rest of it
+
 class PersistentMedication(db.Model):
 	'''a persistent record in the database that represents a medication record'''
 	__tablename__='PersistentMedication'
