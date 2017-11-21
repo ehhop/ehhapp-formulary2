@@ -70,7 +70,7 @@ class PersistentMedication(db.Model):
 		cls.category, _ = get_or_create(Category,name=record.category)
 		cls.aliases = [MedicationAlias(medication_id=cls.id,
 									  name=alias) for alias in record.aliases]
-		return None
+		return cls #make sure to return the object we just made
 
 	def to_class(self,record=MedicationRecord()):
 		'''returns a MedicationRecord class object from the db representation'''
@@ -85,6 +85,7 @@ class PersistentMedication(db.Model):
 		record.qty_issued = {ix:h.quantity for ix,h in enumerate(self.history)}
 		record.category = self.category.name
 		record.aliases = [alias.name for alias in self.aliases]
+		return record #make sure to return the object we just made
 
 	@classmethod #this means that a new PersistentMedication record is loaded into cls
 	def create_or_update(cls,record,ver_db_session=ver_db_session):
@@ -103,10 +104,12 @@ class PersistentMedication(db.Model):
 						) #right now, only update the history of the persistent object with this function
 			ver_db_session.add(match_record) #add this to the db session
 			ver_db_session.commit()
+			return match_record
 		else:
-			ver_db_session.add(PersistentMedication.from_class(record)) #add this to the db session
+			db_record = PersistentMedication.from_class(record)
+			ver_db_session.add(db_record) #add this to the db session
 			ver_db_session.commit()
-		return None
+			return db_record
 
 	def __repr__(self):
 		'''a string representation of the db object'''
