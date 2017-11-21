@@ -70,10 +70,10 @@ class PersistentMedication(db.Model):
 		cls.admin = record.admin
 		cls.prescribeable = record.prescribeable
 		cls.history = [MedicationHistory(medication_id=cls.id,
-										 date=record.transactions[i][1],
-										 price=record.price[i][1],
-										 quantity = record.qty_issued[i][1])
-						for i in record.transactions.keys]
+										 date=i.date,
+										 price=i.price,
+										 quantity = i.qty)
+						for i in record.transactions]
 		cls.category, _ = get_or_create(Category,name=record.category)
 		cls.aliases = [MedicationAlias(medication_id=cls.id,
 									  name=alias) for alias in record.aliases]
@@ -87,9 +87,9 @@ class PersistentMedication(db.Model):
 		record.dosage = self.dosage
 		record.admin = self.admin
 		record.prescribeable = self.prescribeable
-		record.transactions = {ix:h.date for ix,h in enumerate(self.history)}
-		record.price = {ix:h.price for ix,h in enumerate(self.history)}
-		record.qty_issued = {ix:h.quantity for ix,h in enumerate(self.history)}
+		record.transactions = [MedicationRecord.transaction(date=h.date,
+								    price=h.price,
+								    qty=h.quantity) for h in self.history)]
 		record.category = self.category.name
 		record.aliases = [alias.name for alias in self.aliases]
 		return record #make sure to return the object we just made
@@ -104,10 +104,10 @@ class PersistentMedication(db.Model):
 					get_or_create(MedicationAlias,medication_id=match_record.id,name=record.name)[0])
 			match_record.history.append(
 							[MedicationHistory(medication_id=match_record.id,
-							 date=record.transactions[i][1],
-							 price=record.price[i][1],
-							 quantity = record.qty_issued[i][1])
-						for i in record.transactions.keys]
+							 date=i.date,
+							 price=i.price,
+							 quantity = i.qty)
+						for i in record.transactions]
 						) #right now, only update the history of the persistent object with this function
 			ver_db_session.add(match_record) #add this to the db session
 			ver_db_session.commit()
