@@ -19,6 +19,15 @@ from history_meta import versioned_session #make a versioned db so we can rollba
 db = SQLAlchemy(app) #create the db object in sqlalchemy
 ver_db_session = versioned_session(db.session) #wrap the db in version control
 
+def get_all_medication_records():
+	'''
+	example usage: 
+	
+	import database
+	med_record_list = database.get_all_medication_records() ## --> [list of MedicationRecord() objects]
+	'''
+	return [i.to_class() for i in PersistentMedication.query.all()]
+
 #copypasta from https://stackoverflow.com/questions/6587879/how-to-elegantly-check-the-existence-of-an-object-instance-variable-and-simultan
 def get_or_create(model, **kwargs):
 	'''checks to see if an object with those properties exists in the db
