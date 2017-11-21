@@ -114,7 +114,7 @@ class PersistentMedication(db.Model):
 
 class MedicationAlias(db.Model):
 	'''other names for medications in the database that can be used for mathcing'''
-	__tablename__='MedicationHistory'
+	__tablename__='MedicationAlias'
 
 	id = db.Column(db.BigInteger, primary_key=True)
 	medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
