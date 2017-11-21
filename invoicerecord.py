@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
 '''
+want to import this function
 
 eg. import 'invoicerecord.py' - test danc
 
 '''
 
-import datetime, defaultdict
+import datetime, collections
 
 class MedicationRecord():
 
