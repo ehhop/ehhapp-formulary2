@@ -7,7 +7,7 @@ eg. import 'invoicerecord.py' - test danc
 
 '''
 
-import datetime, collections, datetime
+import datetime, collections
 
 class MedicationRecord(object):
 	
