@@ -7,19 +7,21 @@ eg. import 'invoicerecord.py' - test danc
 
 '''
 
-import datetime, collections
+import datetime, collections, datetime
 
-class MedicationRecord():
-
-	def __init__(self,data):
-		self.id = int()
-		self.name = str()
-		self.common_name = str() #Acetaminophen = Tylenol
-		self.price = defaultdict(dict) #{int:float()}
-		self.qty_issued = defaultdict(dict) #{int:float()}
-		self.transactions = defaultdict(dict) #{int:datetime()}
-		self.dosage = str()
-		self.admin = str()
-		self.category = str() #class of drug
-		self.prescribeable = bool()
-		self.aliases = list([]) #different names
+class MedicationRecord(object):
+	
+	id = int() #pricetable id - the item ID from the invoice
+	name = str()
+	common_name = str() #Acetaminophen = Tylenol
+	transactions = list([]) #[(class transaction(date,price,qty))]
+	dosage = str()
+	admin = str()
+	category = str() #class of drug
+	prescribeable = bool()
+	aliases = list([]) #different names
+	
+	class transaction():
+		date = datetime.datetime()
+		price = float()
+		qty = float()
