@@ -15,8 +15,9 @@ class MedicationRecord():
 		self.id = int()
 		self.name = str()
 		self.common_name = str() #Acetaminophen = Tylenol
-		self.price = defaultdict({datetime.date():float()})
-								#includes history
+		self.price = defaultdict(dict) #{int:float()}
+		self.qty_issued = defaultdict(dict) #{int:float()}
+		self.transactions = defaultdict(dict) #{int:datetime()}
 		self.dosage = str()
 		self.admin = str()
 		self.category = str() #class of drug
