@@ -90,7 +90,7 @@ class PersistentMedication(db.Model):
 	@classmethod #this means that a new PersistentMedication record is loaded into cls
 	def create_or_update(cls,record,ver_db_session=ver_db_session):
 		'''checks if a MedicationRecord exists in the db and updates the history accordingly if so'''
-		match_record,found = get_or_create(cls(pricetable_id=record.id))
+		match_record,found = get_or_create(cls,pricetable_id=record.id)
 		if found:
 			if match_record.name != record.name:
 				match_record.aliases.append( #checks if the name has changed and adds it as an alias
