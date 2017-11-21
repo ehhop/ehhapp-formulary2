@@ -12,13 +12,17 @@ Made by Ryan Neff 11/21/17
 
 from flask import Flask
 
-sqlalchemy_db = "sqllite://formulary.db"
+sqlalchemy_db = "sqlite://formulary.db"
 flask_secret_key = ""
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = sqlalchemy_db
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = flask_secret_key
+
+import database
+import invoicerecord
+import consolidateRecord
 
 if __name__=="__main__":
 	#start the web server if run directly
