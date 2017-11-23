@@ -18,7 +18,7 @@ class MedicationRecord(object):
 	dosage = str()
 	admin = str()
 	category = str() #class of drug
-	prescribeable = bool()
+	prescribable = bool()
 	aliases = list([]) #different names
 	
 	class transaction():
