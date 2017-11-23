@@ -60,7 +60,7 @@ class PersistentMedication(db.Model):
 	common_name = db.Column(db.String(255))
 	dosage = db.Column(db.String(255))
 	admin = db.Column(db.String(255))
-	prescribeable = db.Column(db.Boolean)
+	prescribable = db.Column(db.Boolean)
 	aliases = db.relationship("MedicationAlias", backref='medication', lazy='dynamic',
 	                        cascade="all, delete-orphan") #has many aliases
 	history = db.relationship("MedicationHistory", backref='medication', lazy='dynamic',
@@ -77,7 +77,7 @@ class PersistentMedication(db.Model):
 		cls.common_name = record.common_name
 		cls.dosage = record.dosage
 		cls.admin = record.admin
-		cls.prescribeable = record.prescribeable
+		cls.prescribable = record.prescribable
 		cls.history = [MedicationHistory(medication_id=cls.id,
 										 date=i.date,
 										 price=i.price,
@@ -95,7 +95,7 @@ class PersistentMedication(db.Model):
 		record.common_name = self.common_name
 		record.dosage = self.dosage
 		record.admin = self.admin
-		record.prescribeable = self.prescribeable
+		record.prescribable = self.prescribable
 		record.transactions = [MedicationRecord.transaction(date=h.date,
 								    price=h.price,
 								    qty=h.quantity) for h in self.history)]
