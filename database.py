@@ -36,7 +36,7 @@ def get_or_create(model, **kwargs):
     '''
     try:
         # basically check the obj from the db, this syntax might be wrong
-        object = ver_db_session.query(model).filter(**kwargs).first()
+        object = ver_db_session.query(model).filter_by(**kwargs).first()
         assert object != None #check if we got an object back
         return object, True #if we did, set found = True
     except AssertionError:
@@ -65,7 +65,7 @@ class PersistentMedication(db.Model):
                         cascade="all, delete-orphan") #has many aliases
     history = db.relationship("MedicationHistory", backref='medication', lazy='dynamic',
                         cascade="all, delete-orphan") # has many histories
-    category_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id')) #has one category
+    category_id = db.Column(db.BigInteger, db.ForeignKey('Category.id')) #has one category
 
     @classmethod #this means that a new PersistentMedication record is loaded into cls
     def from_class(cls,record):
