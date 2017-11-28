@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/home/rneff/anaconda3/bin/python3
 
 '''
 __init__.py
@@ -12,7 +12,7 @@ Made by Ryan Neff 11/21/17
 
 from flask import Flask
 
-sqlalchemy_db = "sqlite://formulary.db"
+sqlalchemy_db = "sqlite:///formulary.db"
 flask_secret_key = ""
 
 app = Flask(__name__)

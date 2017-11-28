@@ -22,6 +22,6 @@ class MedicationRecord(object):
 	aliases = list([]) #different names
 	
 	class transaction():
-		date = datetime.datetime()
+		date = datetime.time()
 		price = float()
 		qty = float()
