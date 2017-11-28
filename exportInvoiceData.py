@@ -1,3 +1,11 @@
+#!/usr/bin/env python
+'''
+Description: outputs desired quantity and cost data in .xlsx format
+Inputs: persistant database with medicine list information
+Output: excel file in desired format in .xlsx format
+11/28/17 Brian Cho
+'''
+
 import pandas as pd
 import invoicerecord		# is this required?
 import database as medListDB
