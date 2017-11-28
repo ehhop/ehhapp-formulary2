@@ -25,3 +25,9 @@ class MedicationRecord(object):
 		date = datetime.time()
 		price = float()
 		qty = float()
+
+	def __init__(self, **kwargs):
+		self.__dict__.update(kwargs)
+
+	def __repr__(self):
+		return "<MedicationRecord, id=%d, common_name=%s>" % (self.id, self.common_name)
