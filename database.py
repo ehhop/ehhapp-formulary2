@@ -14,6 +14,7 @@ This hasn't been tested yet...
 from invoicerecord import MedicationRecord #import the class definition 
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
 from __init__ import app #import init params like where the db is
+from sqlalchemy import orm
 #from history_meta import versioned_session #make a versioned db so we can rollback stuff
 
 db = SQLAlchemy(app) #create the db object in sqlalchemy
@@ -46,7 +47,7 @@ def get_or_create(model, **kwargs):
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
     
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
     #TODO for the rest of it
 
@@ -54,7 +55,7 @@ class PersistentMedication(db.Model):
     '''a persistent record in the database that represents a medication record'''
     __tablename__='PersistentMedication'
     
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     pricetable_id = db.Column(db.Integer) #this is the ID on the invoice, the DB has it's own
     name = db.Column(db.String(255))
     common_name = db.Column(db.String(255))
@@ -67,26 +68,30 @@ class PersistentMedication(db.Model):
                         cascade="all, delete-orphan") # has many histories
     category_id = db.Column(db.BigInteger, db.ForeignKey('Category.id')) #has one category
 
-    @classmethod #this means that a new PersistentMedication record is loaded into cls
-    def from_class(cls,record):
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def from_class(record):
         '''loads the db object from the shared MedicationRecord object
                 inputs: record (class MedicationRecord)
         '''
-        cls.pricetable_id = record.id
-        cls.name = record.name
-        cls.common_name = record.common_name
-        cls.dosage = record.dosage
-        cls.admin = record.admin
-        cls.prescribable = record.prescribable
-        cls.history = [MedicationHistory(medication_id=cls.id,
+        init_db = PersistentMedication()
+        init_db.pricetable_id = record.id
+        init_db.name = record.name
+        init_db.common_name = record.common_name
+        init_db.dosage = record.dosage
+        init_db.admin = record.admin
+        init_db.prescribable = record.prescribable
+        init_db.history = [MedicationHistory(medication_id=init_db.id,
                                          date=i.date,
                                          price=i.price,
                                          quantity = i.qty)
                         for i in record.transactions]
-        cls.category, _ = get_or_create(Category,name=record.category)
-        cls.aliases = [MedicationAlias(medication_id=cls.id,
+        init_db.category, _ = get_or_create(Category,name=record.category)
+        init_db.aliases = [MedicationAlias(medication_id=init_db.id,
                                       name=alias) for alias in record.aliases]
-        return cls #make sure to return the object we just made
+        return init_db #make sure to return the object we just made
 
     def to_class(self,record=MedicationRecord()):
         '''returns a MedicationRecord class object from the db representation'''
@@ -127,15 +132,11 @@ class PersistentMedication(db.Model):
             ver_db_session.commit()
             return db_record
 
-    def __repr__(self):
-        '''a string representation of the db object'''
-        return '<PersistentMed %r, invoice_id: %r, Name:%r>' % (self.id,self.pricetable_id,self.name)
-
 class MedicationAlias(db.Model):
     '''other names for medications in the database that can be used for mathcing'''
     __tablename__='MedicationAlias'
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
                                ondelete="CASCADE")) #belongs to 
     name = db.Column(db.String(255))
@@ -148,10 +149,10 @@ class MedicationHistory(db.Model):
     '''
     __tablename__='MedicationHistory'
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
                                ondelete="CASCADE")) #belongs to 
-    date = db.Column(db.Time)
+    date = db.Column(db.Date)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
 
@@ -159,7 +160,7 @@ class Category(db.Model):
     '''the category a type of medication belongs to'''
     __tablename__='Category'
 
-    id = db.Column(db.BigInteger, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     name = db.Column(db.String(255))
     medications = db.relationship("PersistentMedication", #has many medications
         backref='category', lazy='dynamic')
