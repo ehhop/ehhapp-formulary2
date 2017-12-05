@@ -42,7 +42,7 @@ def saveinvoicetodb(file):
     for ix,row in ds.iterrows():
         newobj = database.InvoiceRecord(invoice_id=invoice_db.id)
         for col in invoice_columns:
-            setattr(newobj,col) = row[col]
+            setattr(newobj,col,row[col]) 
         invoiceobjs.append(newobj)
     database.ver_db_session.add_all(invoiceobjs)
     database.ver_db_session.commit()
