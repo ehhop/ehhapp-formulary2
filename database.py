@@ -4,14 +4,14 @@
 database.py
 
 This is the database model and convenient helper functions
-for the persistent FormularyDB for EHHOP. 
+for the persistent FormularyDB for EHHOP.
 
 Made by Ryan Neff 11/21/17
 
 This hasn't been tested yet...
 '''
 
-from invoicerecord import MedicationRecord #import the class definition 
+from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
 from __init__ import app #import init params like where the db is
 #from history_meta import versioned_session #make a versioned db so we can rollback stuff
@@ -21,8 +21,8 @@ ver_db_session = db.session #versioned_session(db.session) #wrap the db in versi
 
 def get_all_medication_records():
     '''
-    example usage: 
-    
+    example usage:
+
     import database
     med_record_list = database.get_all_medication_records() ## --> [list of MedicationRecord() objects]
     '''
@@ -45,15 +45,14 @@ def get_or_create(model, **kwargs):
 
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
-    
+
     id = db.Column(db.BigInteger, primary_key=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
-    #TODO for the rest of it
 
 class PersistentMedication(db.Model):
     '''a persistent record in the database that represents a medication record'''
     __tablename__='PersistentMedication'
-    
+
     id = db.Column(db.BigInteger, primary_key=True)
     pricetable_id = db.Column(db.Integer) #this is the ID on the invoice, the DB has it's own
     name = db.Column(db.String(255))
@@ -136,21 +135,21 @@ class MedicationAlias(db.Model):
     __tablename__='MedicationAlias'
 
     id = db.Column(db.BigInteger, primary_key=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
-                               ondelete="CASCADE")) #belongs to 
+    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
+                               ondelete="CASCADE")) #belongs to
     name = db.Column(db.String(255))
 
 class MedicationHistory(db.Model):
-    '''a record of a transaction of a medication from 
+    '''a record of a transaction of a medication from
        an invoice including the price and qty
-       that it was purchased at on a given day/time of 
+       that it was purchased at on a given day/time of
        a month
     '''
     __tablename__='MedicationHistory'
 
     id = db.Column(db.BigInteger, primary_key=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
-                               ondelete="CASCADE")) #belongs to 
+    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
+                               ondelete="CASCADE")) #belongs to
     date = db.Column(db.Time)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
