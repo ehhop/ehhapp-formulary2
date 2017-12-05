@@ -84,11 +84,3 @@ writer = pd.ExcelWriter("internalFormularyCosts.xlsx")
 issueCostDataFrame.to_excel(writer, startcol=len(medInfoColumnsList))
 medInfoDataFrame.to_excel(writer, startrow=2)
 writer.save()
-
-
-
-# for transaction in transactionHistoryData[transactionsIndex]:
-# 	issueCostDataFrame.loc[indexList[transactionsIndex], issueCostColumns[0][transaction.date.month]] = [transaction.qty, transaction.qty*transaction.price]
-# 	totalIssue += transaction.qty
-# 	totalCost += transaction.qty*transaction.price
-# issueCostDataFrame.loc[indexList[transactionsIndex], "Year"] = [totalIssue, totalCost]
