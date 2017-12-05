@@ -124,7 +124,8 @@ class PersistentMedication(db.Model):
                                       name=alias) for alias in record.aliases]
         return init_db #make sure to return the object we just made
 
-    def to_class(self,record=MedicationRecord()):
+    def to_class(self):
+        record = MedicationRecord()
         '''returns a MedicationRecord class object from the db representation'''
         record.id = self.pricetable_id
         record.name = self.name
