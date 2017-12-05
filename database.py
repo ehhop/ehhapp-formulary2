@@ -116,7 +116,7 @@ class PersistentMedication(db.Model):
             if match_record.name != record.name:
                 match_record.aliases.append( #checks if the name has changed and adds it as an alias
                     get_or_create(MedicationAlias,medication_id=match_record.id,name=record.name)[0])
-            match_record.history.append(
+                match_record.history.extend(
                             [MedicationHistory(medication_id=match_record.id,
                              date=i.date,
                              price=i.price,
