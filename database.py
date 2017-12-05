@@ -15,6 +15,7 @@ from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
 from __init__ import app #import init params like where the db is
 from sqlalchemy import orm
+import json
 #from history_meta import versioned_session #make a versioned db so we can rollback stuff
 
 db = SQLAlchemy(app) #create the db object in sqlalchemy
@@ -44,12 +45,41 @@ def get_or_create(model, **kwargs):
         object = model(**kwargs) #return a blank object instatiated with kwargs if not found
         return object, False #set found to false
 
+class Invoice(db.Model):
+    __tablename__="Invoice"
+    
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
+    filename = db.Column(db.String(255))
+    date_added = db.Column(db.DateTime)
+    properties = db.Column(db.Text)
+    records = db.relationship("InvoiceRecord", backref='invoice', lazy='dynamic',
+                        cascade="all, delete-orphan")
+    def properties_dict(self):
+        return json.loads(str(self.properties).replace("'","\""))
+
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
     
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
-    #TODO for the rest of it
+    invoice_id = db.Column(db.BigInteger, db.ForeignKey('Invoice.id'))
+    exp_code = db.Column(db.Integer)
+    supply_loc = db.Column(db.String(255))
+    item_no = db.Column(db.Integer)
+    item_description = db.Column(db.String(255))
+    vendor_name = db.Column(db.String(255))
+    vendor_ctg_no = db.Column(db.BigInteger)
+    mfr_name = db.Column(db.String(255))
+    mfr_ctlg_no = db.Column(db.BigInteger)
+    comdty_name = db.Column(db.String(255))
+    comdty_code = db.Column(db.String(255))
+    requisition_no = db.Column(db.BigInteger)
+    requisition_date = db.Column(db.DateTime)
+    issue_qty = db.Column(db.Float)
+    um = db.Column(db.String(255))
+    price = db.Column(db.Float)
+    extended_price = db.Column(db.Float)
+    cost_center_no = db.Column(db.BigInteger)
 
 class PersistentMedication(db.Model):
     '''a persistent record in the database that represents a medication record'''
@@ -68,8 +98,9 @@ class PersistentMedication(db.Model):
                         cascade="all, delete-orphan") # has many histories
     category_id = db.Column(db.BigInteger, db.ForeignKey('Category.id')) #has one category
 
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+        
 
     @staticmethod
     def from_class(record):
@@ -116,13 +147,13 @@ class PersistentMedication(db.Model):
             if match_record.name != record.name:
                 match_record.aliases.append( #checks if the name has changed and adds it as an alias
                     get_or_create(MedicationAlias,medication_id=match_record.id,name=record.name)[0])
-                match_record.history.extend(
-                            [MedicationHistory(medication_id=match_record.id,
-                             date=i.date,
-                             price=i.price,
-                             quantity = i.qty)
-                        for i in record.transactions]
-                        ) #right now, only update the history of the persistent object with this function
+            match_record.history.extend(
+                        [MedicationHistory(medication_id=match_record.id,
+                         date=i.date,
+                         price=i.price,
+                         quantity = i.qty)
+                    for i in record.transactions]
+                    ) #right now, only update the history of the persistent object with this function
             ver_db_session.add(match_record) #add this to the db session
             ver_db_session.commit()
             return match_record
@@ -152,9 +183,11 @@ class MedicationHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id', 
                                ondelete="CASCADE")) #belongs to 
-    date = db.Column(db.Date)
+    date = db.Column(db.DateTime)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
+    source_id = db.Column(db.Integer, db.ForeignKey('InvoiceRecord.id')) #this is a unique key based on the invoicerecord it came from
+    source = db.relationship("InvoiceRecord", foreign_keys='MedicationHistory.source_id')
 
 class Category(db.Model):
     '''the category a type of medication belongs to'''

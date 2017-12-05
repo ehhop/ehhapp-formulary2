@@ -12,10 +12,11 @@ import datetime, collections
 class MedicationRecord(object):
 	
 	class transaction():
-		def __init__(self, date=None, price=None, qty=None):
+		def __init__(self, date=None, price=None, qty=None, source=None):
 			self.date = date if date else datetime.time()
 			self.price = price if price else float()
 			self.qty = qty if qty else float()
+			self.source = source if source else str()
 
 	def __init__(self, id=None, name=None, common_name=None,transactions=None,
 		dosage=None, admin=None, category=None, prescribable=None, aliases=None):
