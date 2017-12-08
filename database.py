@@ -60,10 +60,6 @@ class Invoice(db.Model):
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
 
-    id = db.Column(db.BigInteger, primary_key=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
-
-
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
     invoice_id = db.Column(db.BigInteger, db.ForeignKey('Invoice.id'))
@@ -174,10 +170,6 @@ class MedicationAlias(db.Model):
     '''other names for medications in the database that can be used for mathcing'''
     __tablename__='MedicationAlias'
 
-    id = db.Column(db.BigInteger, primary_key=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
-                               ondelete="CASCADE")) #belongs to
-
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
                                ondelete="CASCADE")) #belongs to
@@ -190,11 +182,6 @@ class MedicationHistory(db.Model):
        a month
     '''
     __tablename__='MedicationHistory'
-
-    id = db.Column(db.BigInteger, primary_key=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
-                               ondelete="CASCADE")) #belongs to
-    date = db.Column(db.Time)
 
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
