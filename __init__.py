@@ -12,7 +12,7 @@ Made by Ryan Neff 11/21/17
 
 from flask import Flask
 
-sqlalchemy_db = "sqlite:///formulary.db"
+sqlalchemy_db = "sqlite:///formulary2.db"
 flask_secret_key = ""
 
 app = Flask(__name__)
