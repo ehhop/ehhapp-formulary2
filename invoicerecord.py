@@ -39,7 +39,7 @@ class MedicationRecord(object):
 
 	def __init__(self, pricetable_id=None, name=None, common_name=None,transactions=None,
 		dosage=None, admin=None, category=None, prescribable=None, aliases=None):
-		self.pricetable_id = pricetable_id if pricetable_id else int() #pricetable id - the item ID from the invoice
+		self.pricetable_id = pricetable_id if id else int() #pricetable id - the item ID from the invoice
 		self.name = name if name else str()
 		self.common_name = common_name if common_name else str() #Acetaminophen = Tylenol
 		self.transactions = transactions if transactions else list([]) #[(class transaction(date,price,qty))]
