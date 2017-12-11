@@ -77,8 +77,11 @@ def readrecord(file):
         else:
             data[record] = record
 
-        for key, value in data.items():
-            print(value)
+    print(len(data))
+
+    for key, value in data.items():
+        database.save_persistent_record(value) #cross your fingers!
+            #print(value)
 
     #Generate PersistntMedication Record for each item, and add to database
 if __name__ == '__main__':
