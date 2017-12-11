@@ -11,16 +11,6 @@ import datetime, collections
 
 class MedicationRecord(object):
 
-	pricetable_id = int() #pricetable id - the item ID from the invoice
-	name = str()
-	common_name = str() #Acetaminophen = Tylenol
-	transactions = list([]) #[(class transaction(date,price,qty))]
-	dosage = str()
-	admin = str()
-	category = str() #class of drug
-	prescribable = bool()
-	aliases = list([]) #different names
-
 	class transaction():
 		date = datetime.time()
 		price = float()
@@ -39,7 +29,7 @@ class MedicationRecord(object):
 
 	def __init__(self, pricetable_id=None, name=None, common_name=None,transactions=None,
 		dosage=None, admin=None, category=None, prescribable=None, aliases=None):
-		self.pricetable_id = pricetable_id if id else int() #pricetable id - the item ID from the invoice
+		self.id = pricetable_id if pricetable_id else int() #pricetable id - the item ID from the invoice
 		self.name = name if name else str()
 		self.common_name = common_name if common_name else str() #Acetaminophen = Tylenol
 		self.transactions = transactions if transactions else list([]) #[(class transaction(date,price,qty))]
@@ -50,10 +40,10 @@ class MedicationRecord(object):
 		self.aliases = aliases if aliases else list([]) #different names
 
 	def __hash__(self):
-		return hash(self.pricetable_id)
+		return hash(self.id)
 
 	def __eq__(self,other):
-		return self.pricetable_id == other.pricetable_id
+		return self.id == other.id
 
 	def __ne__(self,other):
 		return not self.__eq__(other)
@@ -69,4 +59,4 @@ class MedicationRecord(object):
 
 
 	def __repr__(self):
-		return "<MedicationRecord, id=%d, name=%s, entries=%d>" % (self.pricetable_id, self.name, len(self.transactions))
+		return "<MedicationRecord, id=%d, name=%s, entries=%d>" % (self.id, self.name, len(self.transactions))
