@@ -8,8 +8,8 @@ Output: excel file in desired format in .xlsx format
 
 import pandas as pd
 import collections
-# import invoicerecord		# is this required?
 import database as medListDB
+import numpy as np
 
 def bucketAndQuantify(inputTransactionsList):
 	# Input: a list of transactions per MedicationRecord
@@ -22,18 +22,35 @@ def bucketAndQuantify(inputTransactionsList):
 		transactionDict[tempTransaction.date.month].append([tempTransaction.price, tempTransaction.qty])
 	# Calculate issue and price per month and year total
 	issueCostList = []
+	totalScripts = 0
 	totalIssue = 0
 	totalCost = 0
+	yearlyPriceList = []
 	for month in transactionDict.keys():
+		monthylScripts = 0
 		monthlyIssue = 0
 		monthlyCost = 0
+		monthlyPriceList = []
 		for tempTransaction in transactionDict[month]:
+			# monthylScripts += tempTransaction[2]		for adding scripts count
 			monthlyIssue += tempTransaction[1]
 			monthlyCost += tempTransaction[0] * tempTransaction[1]
+			monthlyPriceList.append(tempTransaction[0])
+			yearlyPriceList.append(tempTransaction[0])
+		averageMonthlyPrice = np.mean(monthlyPriceList)
+		# Round to the neareast 0.01
+		monthlyCost = round(monthlyCost, 2)
+		averageMonthlyPrice = round(averageMonthlyPrice, 2)
+		issueCostList.append([month, monthylScripts, monthlyIssue, monthlyCost, averageMonthlyPrice])
+		# Keep running tally for final yearly tabulation
+		totalScripts += monthylScripts
 		totalIssue += monthlyIssue
 		totalCost += monthlyCost
-		issueCostList.append([month, monthlyIssue, monthlyCost])
-	issueCostList.append([0, totalIssue, totalCost])
+	averageYearlyPrice = np.mean(yearlyPriceList)
+	# Round to the neareast 0.01
+	totalCost = round(totalCost, 2)
+	averageYearlyPrice = round(averageYearlyPrice, 2)
+	issueCostList.append([0, totalScripts, totalIssue, totalCost, averageYearlyPrice])
 	return issueCostList
 
 
@@ -54,12 +71,13 @@ for i in medsList:
 	# transactionHistoryData.append(i.transactions)
 
 ## Initialize dataframe for holding med info metadata
-medInfoColumnsList = ["Name", "Category"]
+medInfoColumns = [[""], ["Name", "Category"]]
+medInfoColumnsList = pd.MultiIndex.from_product(medInfoColumns)
 medInfoDataFrame = pd.DataFrame(data = medInfoData, index = indexList, columns = medInfoColumnsList)
 
 ## Initialize dataframe for holding issue and cost data
 # Use multi-indexing to generate issueCostDataFrame column names
-issueCostColumns = [["Year", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ["Issue", "Cost"]]
+issueCostColumns = [["Year", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"], ["Scripts", "Issue", "Cost", "Price"]]
 issueCostColumnsList = pd.MultiIndex.from_product(issueCostColumns)
 # Initialize dataframe containing 0's
 issueCostDataFrame = pd.DataFrame(data = [[0]*len(issueCostColumns[0])*len(issueCostColumns[1]) for _ in range(len(indexList))], index = indexList, columns = issueCostColumnsList)
@@ -74,13 +92,19 @@ for record in medsList:
 		buckettedTransactionHistory = bucketAndQuantify(record.transactions)
 		# Populate dataframe with bucketted information
 		for monthData in buckettedTransactionHistory:
-			issueCostDataFrame.loc[record.id, issueCostColumns[0][monthData[0]]] = [monthData[1], monthData[2]]
-	# else:
-		# Should be pre-populated with 0's
+			issueCostDataFrame.loc[record.id, issueCostColumns[0][monthData[0]]] = [monthData[1], monthData[2], monthData[3], monthData[4]]
+
+# Combine medInfoDataFrame and issueCostDataFrame for output
+outputDataFrame = pd.concat([medInfoDataFrame, issueCostDataFrame], axis = 1)
+outputDataFrame.index.name = "Item No"
 
 # Output dataframes into desired format
 # Can't seem to get rid of the extra line in the header for some reason
 writer = pd.ExcelWriter("internalFormularyCosts.xlsx")
-issueCostDataFrame.to_excel(writer, startcol=len(medInfoColumnsList))
-medInfoDataFrame.to_excel(writer, startrow=2)
+outputDataFrame.to_excel(writer)
 writer.save()
+
+# Test to see if categories are correctly assigned
+# writer = pd.ExcelWriter("test.xlsx")
+# medInfoDataFrame.to_excel(writer)
+# writer.save()
