@@ -17,6 +17,7 @@ def bucketAndQuantify(inputTransactionsList):
 	# Output: a bucketted list of issued amount and cost per month and total year (month "0")
 
 	# Bucket by months into defaultdict
+	# Contain price and quantity information for all transactions each month
 	transactionDict = collections.defaultdict(list)
 	for tempTransaction in inputTransactionsList:
 		transactionDict[tempTransaction.date.month].append([tempTransaction.price, tempTransaction.qty])
@@ -32,11 +33,13 @@ def bucketAndQuantify(inputTransactionsList):
 		monthlyCost = 0
 		monthlyPriceList = []
 		for tempTransaction in transactionDict[month]:
-			# monthylScripts += tempTransaction[2]		for adding scripts count
 			monthlyIssue += tempTransaction[1]
 			monthlyCost += tempTransaction[0] * tempTransaction[1]
 			monthlyPriceList.append(tempTransaction[0])
 			yearlyPriceList.append(tempTransaction[0])
+		# Determine number of scripts written each month
+		monthylScripts = len(transactionDict[month])
+		# Average prices for monthly price
 		averageMonthlyPrice = np.mean(monthlyPriceList)
 		# Round to the neareast 0.01
 		monthlyCost = round(monthlyCost, 2)
@@ -97,6 +100,9 @@ for record in medsList:
 # Combine medInfoDataFrame and issueCostDataFrame for output
 outputDataFrame = pd.concat([medInfoDataFrame, issueCostDataFrame], axis = 1)
 outputDataFrame.index.name = "Item No"
+
+# Sort alphabetically by name
+outputDataFrame = outputDataFrame.sort_values(by = [("", "Name")])
 
 # Output dataframes into desired format
 # Can't seem to get rid of the extra line in the header for some reason
