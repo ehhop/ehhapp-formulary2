@@ -41,18 +41,12 @@ def bucketAndQuantify(inputTransactionsList):
 		monthylScripts = len(transactionDict[month])
 		# Average prices for monthly price
 		averageMonthlyPrice = np.mean(monthlyPriceList)
-		# Round to the neareast 0.01
-		monthlyCost = round(monthlyCost, 2)
-		averageMonthlyPrice = round(averageMonthlyPrice, 2)
 		issueCostList.append([month, monthylScripts, monthlyIssue, monthlyCost, averageMonthlyPrice])
 		# Keep running tally for final yearly tabulation
 		totalScripts += monthylScripts
 		totalIssue += monthlyIssue
 		totalCost += monthlyCost
 	averageYearlyPrice = np.mean(yearlyPriceList)
-	# Round to the neareast 0.01
-	totalCost = round(totalCost, 2)
-	averageYearlyPrice = round(averageYearlyPrice, 2)
 	issueCostList.append([0, totalScripts, totalIssue, totalCost, averageYearlyPrice])
 	return issueCostList
 
