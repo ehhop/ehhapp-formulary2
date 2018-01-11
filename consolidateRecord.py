@@ -86,4 +86,4 @@ def readrecord(file):
     #Generate PersistntMedication Record for each item, and add to database
 if __name__ == '__main__':
     readrecord("invoice.xls")
-    print("done")
+    print("done reading invoice.")
