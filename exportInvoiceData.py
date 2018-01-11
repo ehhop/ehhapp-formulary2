@@ -18,6 +18,7 @@ def exportrecord():
 		# Output: a bucketted list of issued amount and cost per month and total year (month "0")
 
 		# Bucket by months into defaultdict
+		# Contain price and quantity information for all transactions each month
 		transactionDict = collections.defaultdict(list)
 		for tempTransaction in inputTransactionsList:
 			transactionDict[tempTransaction.date.month].append([tempTransaction.price, tempTransaction.qty])
@@ -33,27 +34,22 @@ def exportrecord():
 			monthlyCost = 0
 			monthlyPriceList = []
 			for tempTransaction in transactionDict[month]:
-				# monthylScripts += tempTransaction[2]		for adding scripts count
 				monthlyIssue += tempTransaction[1]
 				monthlyCost += tempTransaction[0] * tempTransaction[1]
 				monthlyPriceList.append(tempTransaction[0])
 				yearlyPriceList.append(tempTransaction[0])
+			# Determine number of scripts written each month
+			monthylScripts = len(transactionDict[month])
+			# Average prices for monthly price
 			averageMonthlyPrice = np.mean(monthlyPriceList)
-			# Round to the neareast 0.01
-			monthlyCost = round(monthlyCost, 2)
-			averageMonthlyPrice = round(averageMonthlyPrice, 2)
 			issueCostList.append([month, monthylScripts, monthlyIssue, monthlyCost, averageMonthlyPrice])
 			# Keep running tally for final yearly tabulation
 			totalScripts += monthylScripts
 			totalIssue += monthlyIssue
 			totalCost += monthlyCost
 		averageYearlyPrice = np.mean(yearlyPriceList)
-		# Round to the neareast 0.01
-		totalCost = round(totalCost, 2)
-		averageYearlyPrice = round(averageYearlyPrice, 2)
 		issueCostList.append([0, totalScripts, totalIssue, totalCost, averageYearlyPrice])
 		return issueCostList
-
 
 	## Assume meds is list of MedicationRecord
 	medsList = medListDB.get_all_medication_records()	#import meds list from database
@@ -101,6 +97,9 @@ def exportrecord():
 
 	# Output dataframes into desired format
 	# Can't seem to get rid of the extra line in the header for some reason
+
+	# Sort alphabetically by name
+	outputDataFrame = outputDataFrame.sort_values(by = [("", "Name")])
 	writer = pd.ExcelWriter("internalFormularyCosts.xlsx")
 	outputDataFrame.to_excel(writer)
 	writer.save()
