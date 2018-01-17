@@ -15,7 +15,7 @@ from flask_mail import Mail
 from requests.auth import HTTPBasicAuth
 
 sqlalchemy_db = "sqlite:///formulary.db"
-flask_secret_key = ""
+flask_secret_key = "flask-test-ehhop"
 
 app = Flask(__name__, template_folder='templates')
 app.config['SQLALCHEMY_DATABASE_URI'] = sqlalchemy_db
