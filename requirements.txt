@@ -1,0 +1,7 @@
+pandas
+flask_login
+flask_sqlalchemy
+flask_mail
+flask_login
+oauth2client
+mpld3
