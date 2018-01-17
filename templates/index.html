@@ -1,5 +1,11 @@
 {% extends 'layout.html' %}
-{% block title %}Welcome to ehhapp-formulary2{% endblock %}
+{%block navbar%}
+<li class="inactive"><a href="/medications">Medications</a></li>
+                         <li class="inactive"><a href="/history">History</a></li>
+                         <li class="inactive"><a href="/import">Import</a></li>
+                         <li class="inactive"><a href="/import">Export</a></li>
+{%endblock%}
+{% block title %}Welcome to Formulary Updater{% endblock %}
 {% block body %}
 <div class="jumbotron">
 		<!--<img src="/assets/images/" height=200px>!-->

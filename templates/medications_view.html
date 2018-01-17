@@ -28,6 +28,7 @@
 		{% endfor %}			
 		</tbody>
 	    </table>
+	    {{html_figure|safe}}
 	    {% if medications|length == 0 %}
 	    <div class="alert alert-error">No medication records in DB.</div>
 	    {% endif %}

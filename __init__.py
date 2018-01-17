@@ -34,4 +34,4 @@ def shutdown_session(exception=None):
 
 if __name__=="__main__":
 	#start the web server if run directly
-	app.run(debug=True, port=6123)
+	app.run(debug=True, port=5000)
