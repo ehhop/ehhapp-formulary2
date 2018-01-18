@@ -39,15 +39,23 @@ def view_all_medications():
 @app.route("/medications/<int:pricetable_id>")
 def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
-        medication = database.PersistentMedication.query.\
+		medication = database.PersistentMedication.query.\
 		filter_by(pricetable_id=pricetable_id).\
 		first_or_404()
-        med = medication.to_class()
-        medications = [medication.to_class()]
-        fig, ax = plt.subplots()
-        df = pd.DataFrame([{"date":t.date,"price":t.price} for t in med.transactions])
-        df.plot(x="date",y="price",marker='o',ax=ax)
-        html_figure = mpld3.fig_to_html(fig)
-        return render_template("medications_view.html", 
+		med = medication.to_class()
+		medications = [medication.to_class()]
+		fig, (ax1,ax2) = plt.subplots(2)
+		df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
+		df.plot(x="date",y="price",marker='o',ax=ax1)
+		ax1.set_title("Price history")
+		ax1.set_ylabel("Price ($)")
+		ax1.set_xlabel("Date")
+		df.groupby([df["date"].dt.year, df["date"].dt.month,df["date"].dt.day])["qty"].sum().plot(kind="bar",ax=ax2)
+		ax2.set_title("Medication volume")
+		ax2.set_ylabel("Doses given")
+		ax2.set_xlabel("Date")
+		fig.subplots_adjust(hspace=1.5)
+		html_figure = mpld3.fig_to_html(fig)
+		return render_template("medications_view.html", 
 				medications=medications,
-                                html_figure=html_figure)
+		                        html_figure=html_figure)
