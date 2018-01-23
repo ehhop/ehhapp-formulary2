@@ -59,3 +59,18 @@ def view_medication(pricetable_id):
 		return render_template("medications_view.html", 
 				medications=medications,
 		                        html_figure=html_figure)
+
+@app.route("/export")
+def displayDownloadButton():
+	return render_template("export.html")
+
+@app.route("/export/download", methods = ["GET"])
+def downloadFile():
+	# Download latest invoice file
+	# TODO: need to implement sign-in check
+
+	# Do we need to worry about security for bad filename if we're just downloading?
+	downloadsDir = "WHATEVER THE HARD DOWNLOADS DIRECTORY ON THE SERVER IS"
+	downloadFileName = "internalFormularyCosts.xlsx"
+	return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+

@@ -100,7 +100,7 @@ def exportrecord():
 
 	# Sort alphabetically by name
 	outputDataFrame = outputDataFrame.sort_values(by = [("", "Name")])
-	writer = pd.ExcelWriter("internalFormularyCosts.xlsx")
+	writer = pd.ExcelWriter("downloads/internalFormularyCosts.xlsx")
 	outputDataFrame.to_excel(writer)
 	writer.save()
 	return "internalFormularyCosts.xlsx"
