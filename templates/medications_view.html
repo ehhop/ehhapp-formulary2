@@ -6,6 +6,9 @@
                          <li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
 {% block title %}Medications | ehhapp-formulary2{% endblock %}
+{% macro increment(dct, key, inc=1)%}
+    {% if dct.update({key: dct[key] + inc}) %} {% endif %}
+{% endmacro %}
 {% block body %}
 	    <div class="page-header">
 		    <h1>Medications</h1>
@@ -14,7 +17,8 @@
 		<thead>
 			<th> Name </th>
 			<th> Current Price </th>
-			<th> Prescribed </th>
+			<th> Bought </th>
+			<th> Sold </th>
 			<th> Scripts </th>
 		</thead>
 		<tbody>
@@ -22,7 +26,20 @@
 		<tr>
 			<td> <a href="/medications/{{med.id}}">{{ med.name }}</a></td>
 			<td> {{ med.transactions[-1].price | round(3) }}</td>
-			<td> {{med.transactions | sum(attribute="qty")}}</td>
+			{% set counter = {med.name:0} %}
+			{% for m in med.transactions %}
+				{% if m.qty|int > 0 %}
+					{{ increment(counter,med.name,inc=m.qty|int) }}
+				{% endif %}
+			{% endfor %}
+			<td> {{counter[med.name]}}</td>
+			{% set returncounter = {med.name:0} %}
+			{% for m in med.transactions %}
+				{% if m.qty|int < 0 %}
+					{{ increment(returncounter,med.name,inc=m.qty|int*-1) }}
+				{% endif %}
+			{% endfor %}
+			<td> {{returncounter[med.name]}}</td>
 			<td> {{med.transactions | length}} </td>
 		</tr>
 		{% endfor %}			
