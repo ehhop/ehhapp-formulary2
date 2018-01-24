@@ -9,8 +9,9 @@ import database
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import mpld3
+import random, string, time
 import pandas as pd
+from exportInvoiceData import exportrecord
 
 @app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
@@ -70,7 +71,11 @@ def downloadFile():
 	# TODO: need to implement sign-in check
 
 	# Do we need to worry about security for bad filename if we're just downloading?
-	downloadsDir = "WHATEVER THE HARD DOWNLOADS DIRECTORY ON THE SERVER IS"
-	downloadFileName = "internalFormularyCosts.xlsx"
-	return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+        downloadsDir = "export"
+        downloadFileName = "internalFormularyCosts-"+str(int(time.time()))+".xlsx"
+        exportrecord(downloadFileName)
+        return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
 
+def randomword(length):
+        '''generate a random string of whatever length, good for filenames'''
+        return ''.join(random.choice(string.lowercase) for i in range(length))
