@@ -1,9 +1,9 @@
 {% extends 'layout.html' %}
 {% block navbar%}
-<li class="active"><a href="/medications">Medications</a></li>
-                        <li class="inactive"><a href="/history">History</a></li>
-                        <li class="active"><a href="/import">Import</a></li>
-                         <li class="inactive"><a href="/export">Export</a></li>
+<li class="inctive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">History</a></li>
+<li class="active"><a href="/import">Import</a></li>
+ <li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
 {% block title %}Medications | ehhapp-formulary2{% endblock %}
 {% block body %}
@@ -11,45 +11,21 @@
 	<form action="" method="POST" enctype="multipart/form-data">
 	
 <fieldset class="form-group">
-
-  <div class="clearfix ">
-    <label for="invoice_file">Upload new invoice</label>
-    <div class="input">
-      
-	<span class="input-grp-btn">
-	<span class="btn btn-primary btn-file">
-	Browse
-	<input class="form-control" id="invoice_file" name="invoice_file" type="file">
-	</span>
-	</span>
-    </div>
-  </div>
-
-</fieldset>
-
-<fieldset class="form-group">
-
-  <div class="clearfix ">
-    <label for="invoice_file_name">Invoice name</label>
-    <div class="input">
-      
-	<div class="row">
-		<div class="col-xs-6">
-        	<input class="form-control" id="invoice_file_name" name="invoice_file_name" type="text" value="">
+  <div class="clearfix">
+    	<label for="invoice_file">Upload a new invoice</label>
+	    <div class="input">
+	      	<span class="input-grp-btn">
+				<span class="btn btn-primary btn-file">
+				Browse...
+				<input class="form-control" id="invoice_file" name="invoice_file" type="file">
+				</span>
+			</span>
 		</div>
-	</div>
-      
-      
-    </div>
-  </div>
-
+  	</div>
 </fieldset>
 
-
-	<input type="submit" value="Submit" class="btn btn-success">
-	</form>
-	</section>
-	    
-	
-    </div><!-- /.container -->
+<input type="submit" value="Submit" class="btn btn-success">
+</form>
+</section>
+</div><!-- /.container -->
 {% endblock %}
