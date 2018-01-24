@@ -81,11 +81,12 @@ def readrecord(file):
         qty = ds.iloc[i][12]             #Quantity of Medication issued
         price = ds.iloc[i][14]       #Medication price
         date_issued = ds.iloc[i][11]
+        category = ds.iloc[i][8]
         date_issued = date_issued.to_pydatetime()
 
         #Insantiate a new Medication record
         record = MedicationRecord(pricetable_id = pricetable_id, \
-            name = medication_name, \
+            name = medication_name, category=category,\
             transactions = [MedicationRecord.transaction(date_issued,price,qty)])
         #Check if the record is in database, if not add it
         if record in data:
