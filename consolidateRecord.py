@@ -15,10 +15,21 @@ import database
 import pandas as pd
 import datetime
 
+
+## from https://www.pythoncentral.io/hashing-files-with-python/
+import hashlib
+def hash_file(filename):
+    BLOCKSIZE = 65536
+    hasher = hashlib.sha1()
+    with open(filename, 'rb') as afile:
+        buf = afile.read(BLOCKSIZE)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(BLOCKSIZE)
+    return hasher.hexdigest()
+
 def saveinvoicetodb(file):
-    invoice_columns = ['medication_id', #column titles to use
-                     'invoice_id',
-                     'exp_code',
+    invoice_columns = ['exp_code',
                      'supply_loc',
                      'item_no',
                      'item_description',
@@ -36,18 +47,25 @@ def saveinvoicetodb(file):
                      'extended_price',
                      'cost_center_no']
 
-    ds = pd.read_excel(file, header = 0,skiprows = 3,names=invoice_columns)
+    ds = pd.read_excel(file, header = 0,skiprows = 3,usecols=range(0,17),names=invoice_columns).dropna(thresh=3)
     invoiceobjs = []
-    invoice_db = database.Invoice(filename=file,date_added = datetime.datetime.now())
+    invoice_db, is_imported = database.get_or_create(database.Invoice,checksum=hash_file(file))
+    if is_imported:
+        return False
+    invoice_db.filename=file
+    invoice_db.date_added = datetime.datetime.now()
     database.ver_db_session.add(invoice_db)
+    database.ver_db_session.commit()
     for ix,row in ds.iterrows():
         newobj = database.InvoiceRecord(invoice_id=invoice_db.id)
         for col in invoice_columns:
-            setattr(newobj,col,row[col])
+            setattr(newobj,col,str(row[col]))
+            #print(col,getattr(newobj,col))
+        #break
         invoiceobjs.append(newobj)
     database.ver_db_session.add_all(invoiceobjs)
     database.ver_db_session.commit()
-    return "Completed."
+    return True
 
 
 def readrecord(file):
