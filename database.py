@@ -199,8 +199,7 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     name = db.Column(db.String(255))
-    medications = db.relationship("PersistentMedication", #has many medications
-        backref='category', lazy='dynamic')
+    medications = db.relationship("PersistentMedication", backref="category",lazy="dynamic")
 
 def save_persistent_record(record,ver_db_session=ver_db_session):
     '''saves a MedicationRecord object in the db (just an alias)'''
