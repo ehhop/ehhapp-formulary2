@@ -11,6 +11,7 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import random, string, time
 import pandas as pd
+import mpld3
 from exportInvoiceData import exportrecord
 
 @app.route("/", methods=['GET'])
