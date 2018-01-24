@@ -18,6 +18,7 @@
 			<th> Name </th>
 			<th> Category </th>
 			<th> Current Price </th>
+			<th> Spend total </th>
 			<th> Bought </th>
 			<th> Sold </th>
 			<th> Scripts </th>
@@ -28,6 +29,11 @@
 			<td> <a href="/medications/{{med.id}}">{{ med.name }}</a></td>
 			<td> {{med.category}} </td>
 			<td> {{ med.transactions[-1].price | round(3) }}</td>
+			{% set spendcounter = {med.name:0} %}
+			{% for m in med.transactions %}
+				{{ increment(spendcounter,med.name,inc=m.qty|int*m.price|float) }}
+			{% endfor %}
+			<td> {{spendcounter[med.name]|round(2)}}</td>
 			{% set counter = {med.name:0} %}
 			{% for m in med.transactions %}
 				{% if m.qty|int > 0 %}
