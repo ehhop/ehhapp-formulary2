@@ -102,6 +102,19 @@ def readrecord(file):
             #print(value)
 
     #Generate PersistntMedication Record for each item, and add to database
+
+def main(filename):
+    try:
+        result = saveinvoicetodb(filename)
+        if result:
+            readrecord(filename)
+            return "Success",True
+        else:
+            return "Duplicate invoice in db",False
+    except Exception as err:
+        print(str(err))
+        return "Rejected invoice: error message: %s" % str(err),False
+
 if __name__ == '__main__':
     result = saveinvoicetodb("invoice.xls")
     if result:
