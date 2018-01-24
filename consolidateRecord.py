@@ -69,17 +69,17 @@ def saveinvoicetodb(file):
 
 
 def readrecord(file):
-    ds = pd.read_excel(file, header = 0,skiprows = 3)
+    ds = pd.read_excel(file, header = 0,skiprows = 3,usecols=range(0,17)).dropna(thresh=3)
     data = dict()
     for i in range(ds.shape[0]):
-        pricetable_id = ds.iloc[i][2]           #Medication ID
+        pricetable_id = int(ds.iloc[i][2])           #Medication ID
 
         if numpy.isnan(pricetable_id):
             continue
 
         medication_name = ds.iloc[i][3]         #Medicaction Name
-        qty = ds.iloc[i][12]             #Quantity of Medication issued
-        price = ds.iloc[i][14]       #Medication price
+        qty = int(ds.iloc[i][12])             #Quantity of Medication issued
+        price = float(ds.iloc[i][14])       #Medication price
         date_issued = ds.iloc[i][11]
         category = ds.iloc[i][8]
         date_issued = date_issued.to_pydatetime()
