@@ -1,5 +1,5 @@
 from __init__ import app
-from flask import render_template, flash, send_from_directory
+from flask import render_template, flash, send_from_directory, request, redirect, url_for
 import flask.ext.login as flask_login
 from oauth2client import client as gauthclient
 from oauth2client import crypt
@@ -13,6 +13,8 @@ import random, string, time
 import pandas as pd
 import mpld3
 from exportInvoiceData import exportrecord
+import consolidateRecord 
+import_dirname = "import/"
 
 @app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
@@ -76,6 +78,26 @@ def downloadFile():
         downloadFileName = "internalFormularyCosts-"+str(int(time.time()))+".xlsx"
         exportrecord(downloadFileName)
         return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+
+@app.route("/import", methods=["GET","POST"])
+def upload_invoice():
+	if request.method == 'POST':
+		invoice_file_data = request.files['invoice_file']
+		if invoice_file_data.filename == '':
+			flash('Error: No selected file.')
+			return render_template("import.html")
+		if invoice_file_data:
+			invoice_filename = "invoice-upload-"+str(int(time.time()))+".xlsx"
+			invoice_file_data.save(import_dirname+invoice_filename)
+			msg,status = consolidateRecord.main(import_dirname+invoice_filename)
+			if status:
+				flash('Invoice added to db.')
+				return redirect(url_for("view_all_medications"))
+			else:
+				flash("Error: %s" % str(msg))
+		else:
+			flash('Error: No selected file.')
+	return render_template("import.html")
 
 def randomword(length):
         '''generate a random string of whatever length, good for filenames'''
