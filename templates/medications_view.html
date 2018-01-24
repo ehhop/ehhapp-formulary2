@@ -16,6 +16,7 @@
 	    <table class="table table-hover">
 		<thead>
 			<th> Name </th>
+			<th> Category </th>
 			<th> Current Price </th>
 			<th> Bought </th>
 			<th> Sold </th>
@@ -25,6 +26,7 @@
 		{% for med in medications %}
 		<tr>
 			<td> <a href="/medications/{{med.id}}">{{ med.name }}</a></td>
+			<td> {{med.category}} </td>
 			<td> {{ med.transactions[-1].price | round(3) }}</td>
 			{% set counter = {med.name:0} %}
 			{% for m in med.transactions %}
