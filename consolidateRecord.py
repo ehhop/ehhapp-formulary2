@@ -103,5 +103,9 @@ def readrecord(file):
 
     #Generate PersistntMedication Record for each item, and add to database
 if __name__ == '__main__':
-    readrecord("invoice.xls")
-    print("done reading invoice.")
+    result = saveinvoicetodb("invoice.xls")
+    if result:
+        readrecord("invoice.xls")
+        print("done reading invoice.")
+    else:
+        print("invoice already imported. Stop.")
