@@ -11,7 +11,7 @@ import collections
 import database as medListDB
 import numpy as np
 
-def exportrecord():
+def exportrecord(filename):
 	def bucketAndQuantify(inputTransactionsList):
 		# Input: a list of transactions per MedicationRecord
 		# Buckets by month and calculate issued amount and cost
@@ -100,14 +100,14 @@ def exportrecord():
 
 	# Sort alphabetically by name
 	outputDataFrame = outputDataFrame.sort_values(by = [("", "Name")])
-	writer = pd.ExcelWriter("downloads/internalFormularyCosts.xlsx")
+	writer = pd.ExcelWriter("export/"+filename)
 	outputDataFrame.to_excel(writer)
 	writer.save()
-	return "internalFormularyCosts.xlsx"
+	return None
 
 if __name__ == '__main__':
-    exportrecord()
-    print("done. file is at internalFormularyCosts.xlsx")
+    exportrecord("internalFormularyCosts.xlsx")
+    print("done. file is at export/"+filename)
 
 # Test to see if categories are correctly assigned
 # writer = pd.ExcelWriter("test.xlsx")
