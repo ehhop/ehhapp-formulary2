@@ -13,11 +13,30 @@
 	    <div class="page-header">
 		    <h1>Medications</h1>
 	    </div>
+	    <form method="GET" action="/medications" class="form-inline">
+	    	<label for="year">Year to analyze</label>
+	    	<select name="year" class="form-control" onchange="this.form.submit()">
+	    	 {% for y in range(2014,2019) %}
+	    	 {% if y==year|int %}
+			  <option value="{{y}}" selected="selected">{{y}}</option>
+			 {% else %}
+			   <option value="{{y}}">{{y}}</option>
+			 {% endif %}
+			 {% endfor %}
+			 {% if year=="0" %}
+			 	<option value="0" selected="selected">All</option>
+			 {% else %}
+			 	<option value="0">All</option>
+			 {% endif %}
+			</select>
+	    </form>
 	    <table class="table table-hover" id="activesort">
 		<thead>
 			<th> Name </th>
 			<th> Category </th>
-			<th> Current Price </th>
+			<th> Start Price </th>
+			<th> End Price </th>
+			<th> % chg</th>
 			<th> Spend total </th>
 			<th> Bought </th>
 			<th> Sold </th>
@@ -26,14 +45,16 @@
 		<tbody>
 		{% for med in medications %}
 		<tr>
-			<td> <a href="/medications/{{med.id}}">{{ med.name }}</a></td>
+			<td> <a href="/medications/{{med.id}}?year={{year}}">{{ med.name }}</a></td>
 			<td> {{med.category}} </td>
-			<td> {{ med.transactions[-1].price | round(3) }}</td>
+			<td> ${{ med.transactions[0].price | round(3) }}</td>
+			<td> ${{ med.transactions[-1].price | round(3) }}</td>
+			<td> {{(med.transactions[-1].price/med.transactions[0].price*100-100) | round(2)}}%</td>
 			{% set spendcounter = {med.name:0} %}
 			{% for m in med.transactions %}
 				{{ increment(spendcounter,med.name,inc=m.qty|int*m.price|float) }}
 			{% endfor %}
-			<td> {{spendcounter[med.name]|round(2)}}</td>
+			<td> ${{spendcounter[med.name]|round(2)}}</td>
 			{% set counter = {med.name:0} %}
 			{% for m in med.transactions %}
 				{% if m.qty|int > 0 %}
