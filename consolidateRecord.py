@@ -15,6 +15,42 @@ import database
 import pandas as pd
 import datetime
 
+actualcolumns= ["Exp Code",
+                "Supply Loc",
+                "Item No",
+                "Item Description",
+                "Vendor Name",
+                "Vendor Ctlg No",
+                "Mfr Name",
+                "Mfr Ctlg No",
+                "Comdty Name ",
+                "Comdty Code",
+                "Requisition No",
+                "Requisition Date",
+                "Issue Qty",
+                "UM",
+                "Price",
+                "Extended Price",
+                "Cost Center No"]
+
+invoice_columns = ['exp_code',
+                 'supply_loc',
+                 'item_no',
+                 'item_description',
+                 'vendor_name',
+                 'vendor_ctg_no',
+                 'mfr_name',
+                 'mfr_ctlg_no',
+                 'comdty_name',
+                 'comdty_code',
+                 'requisition_no',
+                 'requisition_date',
+                 'issue_qty',
+                 'um',
+                 'price',
+                 'extended_price',
+                 'cost_center_no']
+
 
 ## from https://www.pythoncentral.io/hashing-files-with-python/
 import hashlib
@@ -29,25 +65,9 @@ def hash_file(filename):
     return hasher.hexdigest()
 
 def saveinvoicetodb(file):
-    invoice_columns = ['exp_code',
-                     'supply_loc',
-                     'item_no',
-                     'item_description',
-                     'vendor_name',
-                     'vendor_ctg_no',
-                     'mfr_name',
-                     'mfr_ctlg_no',
-                     'comdty_name',
-                     'comdty_code',
-                     'requisition_no',
-                     'requisition_date',
-                     'issue_qty',
-                     'um',
-                     'price',
-                     'extended_price',
-                     'cost_center_no']
-
-    ds = pd.read_excel(file, header = 0,skiprows = 3,usecols=range(0,17),names=invoice_columns).dropna(thresh=3)
+    ds = pd.read_excel(file,usecols=range(0,17))
+    ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
+    ds = ds[[col for col in actualcolumns if col in ds.columns]]
     invoiceobjs = []
     invoice_db, is_imported = database.get_or_create(database.Invoice,checksum=hash_file(file))
     if is_imported:
@@ -58,8 +78,9 @@ def saveinvoicetodb(file):
     database.ver_db_session.commit()
     for ix,row in ds.iterrows():
         newobj = database.InvoiceRecord(invoice_id=invoice_db.id)
-        for col in invoice_columns:
-            setattr(newobj,col,str(row[col]))
+        for df_col in ds.columns:
+            col = invoice_columns[actualcolumns.index(df_col)]
+            setattr(newobj,col,str(row[df_col]))
             #print(col,getattr(newobj,col))
         #break
         invoiceobjs.append(newobj)
@@ -69,19 +90,21 @@ def saveinvoicetodb(file):
 
 
 def readrecord(file):
-    ds = pd.read_excel(file, header = 0,skiprows = 3,usecols=range(0,17)).dropna(thresh=3)
+    ds = pd.read_excel(file,usecols=range(0,17))
+    ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
+    ds = ds[[col for col in actualcolumns if col in ds.columns]]
     data = dict()
-    for i in range(ds.shape[0]):
-        pricetable_id = int(ds.iloc[i][2])           #Medication ID
+    for ix,row in ds.iterrows():
+        pricetable_id = int(row["Item No"])           #Medication ID
 
         if numpy.isnan(pricetable_id):
             continue
-
-        medication_name = ds.iloc[i][3]         #Medicaction Name
-        qty = int(ds.iloc[i][12])             #Quantity of Medication issued
-        price = float(ds.iloc[i][14])       #Medication price
-        date_issued = ds.iloc[i][11]
-        category = ds.iloc[i][8]
+        
+        medication_name = row["Item Description"]         #Medicaction Name
+        qty = int(row["Issue Qty"])             #Quantity of Medication issued
+        price = float(row["Extended Price"])/qty       #Medication price
+        date_issued = row["Requisition Date"]
+        category = row["Comdty Name "] if "Comdty Name " in row else ""
         date_issued = date_issued.to_pydatetime()
 
         #Insantiate a new Medication record
