@@ -1,7 +1,7 @@
 {% extends 'layout.html' %}
 {% block navbar%}
-<li class="active"><a href="/medications">Medications</a></li>
-                        <li class="inactive"><a href="/history">History</a></li>
+<li class="inactive"><a href="/medications">Medications</a></li>
+                        <li class="active"><a href="/history">History</a></li>
                         <li class="inactive"><a href="/import">Import</a></li>
                          <li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
@@ -11,23 +11,48 @@
 {% endmacro %}
 {% block body %}
 	    <div class="page-header">
-		    <h1>History for year {{year}}</h1>
-		    <h3>{{medications[0].name}}</h3>
+		    <h1>{% if medications|length != 0 %}History for year {{year}}{% else %}History comparison tool{%endif%}</h1>
 	    </div>
+	    {% if medications|length == 0 %}
+	    <form method="GET" action="/history/">
+	    	<div class="form-row">
+		    	<div class="form-group col-md-4">
+			    	<label for="search_term">Enter search term(s):</label>
+			    	<input class="form-control" name="search_term" type="text" value="" placeholder="e.g. ibuprofen; naproxen">
+			    </div>
+			    <div class="form-group col-md-3">
+			    	<label for="year">Year to analyze</label>
+			    	<select name="year" class="form-control">
+					  <option value="2014">2014</option>
+					  <option value="2015">2015</option>
+					  <option value="2016">2016</option>
+					  <option value="2017" selected="selected">2017</option>
+					  <option value="2018">2018</option>
+					</select>
+				</div>
+			</div>
+			<div class="form-group row">
+    			<div class="col-sm-10">
+				<button class="btn btn-primary" type="submit">Search</button>
+			</div></div>
+	    </form>
+	    {% else %}
+	    {{html_figure|safe}}
 	    <table class="table table-hover">
 		<thead>
+			<th> Name </th>
 			<th> Category </th>
 			<th> Start Price </th>
 			<th> End Price </th>
 			<th> % chg</th>
-			<th> Spend total </th>
+			<th> Total bought </th>
 			<th> Bought </th>
-			<th> Sold </th>
 			<th> Scripts </th>
 		</thead>
 		<tbody>
 		{% for med in medications %}
 		<tr>
+			<td> <a href="/medications/{{med.id}}?year={{year}}">{{ med.name }}</a></td>
 			<td> {{med.category}} </td>
 			<td> ${{ med.transactions[0].price | round(3) }}</td>
 			<td> ${{ med.transactions[-1].price | round(3) }}</td>
@@ -44,39 +69,12 @@
 				{% endif %}
 			{% endfor %}
 			<td> {{counter[med.name]}}</td>
-			{% set returncounter = {med.name:0} %}
-			{% for m in med.transactions %}
-				{% if m.qty|int < 0 %}
-					{{ increment(returncounter,med.name,inc=m.qty|int*-1) }}
-				{% endif %}
-			{% endfor %}
-			<td> {{returncounter[med.name]}}</td>
 			<td> {{med.transactions | length}} </td>
 		</tr>
 		{% endfor %}			
 		</tbody>
 	    </table>
-	    <form method="GET" action="/medications/{{medications[0].id}}" class="form-inline">
-	    	<label for="year">Year to analyze</label>
-	    	<select name="year" class="form-control" onchange="this.form.submit()">
-	    	 {% for y in range(2014,2019) %}
-	    	 {% if y==year|int %}
-			  <option value="{{y}}" selected="selected">{{y}}</option>
-			 {% else %}
-			   <option value="{{y}}">{{y}}</option>
-			 {% endif %}
-			 {% endfor %}
-			 {% if year=="0" %}
-			 	<option value="0" selected="selected">All</option>
-			 {% else %}
-			 	<option value="0">All</option>
-			 {% endif %}
-			</select>
-	    </form>
-	    {{html_figure|safe}}
-	    {% if medications|length == 0 %}
-	    <div class="alert alert-error">No medication records in DB.</div>
-	    {% endif %}
 	    </div>
+	    {% endif %}
 
 {% endblock %}
