@@ -10,6 +10,15 @@
     <div class="page-header">
 	    <h1>Export</h1>
     </div>
+	<!-- Default CSS style sheet for boostrap datetimepicker-->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.css"/>
+    <!-- Copied from https://stackoverflow.com/questions/30782006/bootstrap-3-datetimepicker-doesnt-show-calendar -->
+	<!-- Moments.js CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+	<!-- Bootstrap datetimepicker CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+
+	<!-- Submission Form -->
 	<form action="{{ url_for('downloadFile') }}" method="POST" enctype="multipart/form-data">
 		<!-- Copied from https://eonasdan.github.io/bootstrap-datetimepicker/ -->
 		<div class="container">
@@ -38,18 +47,14 @@
 			<input type="submit" value="Submit" class="btn btn-lg btn-primary" href="/export/download/">
 		</div>
 	</form>
-	<!-- Copied from https://stackoverflow.com/questions/30782006/bootstrap-3-datepicker-doesnt-show-calendar -->
-	<!-- Moments.js minified CDN -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js">
-	</script>
-	<!-- Bootstrap datetimepicker -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.14.30/js/bootstrap-datetimepicker.min.js">
-	</script>
 	<script type="text/javascript">
 		$(function () {
-			$('#datetimepicker6').datetimepicker();
+			$('#datetimepicker6').datetimepicker({
+				format: 'L'
+			});
 			$('#datetimepicker7').datetimepicker({
-				useCurrent: false //Important! See issue #1075
+				format: 'L'
+				// useCurrent: false //Important! See issue #1075	
 			});
 			$("#datetimepicker6").on("dp.change", function (e) {
 				$('#datetimepicker7').data("DateTimePicker").minDate(e.date);
