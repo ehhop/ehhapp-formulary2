@@ -1,0 +1,84 @@
+<html lang="en">
+<!-- vvvvvvvvvvvvvv -->
+<!-- Not Authorized -->
+<!-- ^^^^^^^^^^^^^^ -->
+<head>
+  <!-- required -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.5, minimum-scale=0.5" />
+
+  <!-- Google Sign in for authentication -->
+  <meta name="google-signin-scope" content="profile email ">
+  <meta name="google-signin-client_id" content="{{ vm_client_id }}">
+</head>
+<body>
+  <div class="container" style="width:100%; height:100%;font-family:sans-serif">
+  <div id="signin1" style="height:100px; width:30%; min-width:300px;margin: 0 auto; text-align:center; display:block"><h2>Please sign in</h2></div>
+  <div id="signin2" style="width:150px;margin: 0 auto; display:block">
+	<div id="my-signin2" data-onsuccess="onSignIn" data-theme="light"></div>
+  </div>
+  <div class="player-container" style="display:none; width:30%; min-width:300px; margin: 0 auto" id="player1">
+	 {% if current_user.is_authenticated %}
+	 <p style="font-size:10px;text-align:center" id="curuser">Logged in as: {{ current_user.email }} | <a href="#" onclick="signOut();">Log out</a></p>
+	 {% else %}
+	 <p style="font-size:12px;text-align:center" id="curuser">Not logged in. | <a href="#" onclick="signOut();">Retry</a></p>
+	 {% endif %}
+	 </div><br><br>
+<div class="warn" style="width:30%; min-width:300px; margin: 20 auto">
+	<p style="font-size:12px">UNAUTHORIZED USE, POSSESSION, DUPLICATION, OR TAMPERING WITH COMPUTERS, DATA, INFORMATION PROGRAMS OR SERVICES PROVIDED BY THIS SYSTEM IS A VIOLATION OF POLICY AND A CRIMINAL OFFENSE. VIOLATORS ARE SUBJECT TO DISMISSAL AND/OR PROSECUTION.</p>
+    </div>
+  </div>
+    <script>
+      function onSignIn(googleUser) {
+        // Useful data for your client-side scripts:
+        var profile = googleUser.getBasicProfile();
+        console.log("Email: " + profile.getEmail());
+        // The ID token you need to pass to your backend:
+        var id_token = googleUser.getAuthResponse().id_token;
+		var xhr = new XMLHttpRequest();
+		xhr.open('POST', 'https://twilio.ehhapp.org/tokensignin');
+		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+		xhr.onload = function() {
+			console.log("Signed in as: ", xhr.responseText);
+			document.getElementById('player1').style.display='block';
+			document.getElementById('signin1').style.display='block';
+			document.getElementById('signin2').style.display='block';
+			document.getElementById('curuser').innerHTML="Logged in as: " + xhr.responseText + ' | <a href="#" onclick="signOut();">Log out</a></p>';
+			document.getElementById('curuser').innerHTML += '<p><a href="' + document.referrer + '">Continue to site</a></p>';
+		};
+		xhr.send('idtoken=' + id_token);
+	  };
+  </script>
+  <script>
+	    function signOut() {
+		    var auth2 = gapi.auth2.getAuthInstance(); 
+		    var xhr = new XMLHttpRequest();
+		    xhr.open('GET', 'https://twilio.ehhapp.org/logout');
+		    xhr.send();
+		    document.getElementById('player1').style.display='none';
+                    document.getElementById('signin1').style.display='block';
+                    document.getElementById('signin2').style.display='block';
+		    auth2.signOut().then(function () {
+		          console.log('User signed out.');
+			      });
+			        }
+</script>
+    <script>
+    function onFailure(error) {
+      console.log(error);
+    }	
+    function renderButton() {
+      gapi.signin2.render('my-signin2', {
+        'scope': 'profile email',
+	'prompt': 'select_account',
+        'width': 140,
+        'height': 50,
+        'longtitle': false,
+        'theme': 'light',
+        'onsuccess': onSignIn,
+	'onfailure': onFailure,
+      });
+    }
+  </script>
+  <script src="https://apis.google.com/js/platform.js?onload=renderButton" async defer></script>
+</body>
+</html>
