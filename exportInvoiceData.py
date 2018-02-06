@@ -10,10 +10,13 @@ import pandas as pd
 import collections
 import database as medListDB
 import numpy as np
+import datetime
 
-def exportrecord():
+def exportrecord(filename, initDateRange = datetime.datetime(1, 1, 1, 0, 0), finalDateRange = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999)):
 	def bucketAndQuantify(inputTransactionsList):
-		# Input: a list of transactions per MedicationRecord
+		# Input: a list of transactions per MedicationRecord and date range
+		# TODO: Default values for range,
+
 		# Buckets by month and calculate issued amount and cost
 		# Output: a bucketted list of issued amount and cost per month and total year (month "0")
 
@@ -21,7 +24,8 @@ def exportrecord():
 		# Contain price and quantity information for all transactions each month
 		transactionDict = collections.defaultdict(list)
 		for tempTransaction in inputTransactionsList:
-			transactionDict[tempTransaction.date.month].append([tempTransaction.price, tempTransaction.qty])
+			if(tempTransaction.date > initDateRange and tempTransaction.date < finalDateRange):
+				transactionDict[tempTransaction.date.month].append([tempTransaction.price, tempTransaction.qty])
 		# Calculate issue and price per month and year total
 		issueCostList = []
 		totalScripts = 0
@@ -47,7 +51,12 @@ def exportrecord():
 			totalScripts += monthylScripts
 			totalIssue += monthlyIssue
 			totalCost += monthlyCost
-		averageYearlyPrice = np.mean(yearlyPriceList)
+		# Return 0 if no prices recorded
+		# if len(yearlyPriceList == 0):
+		if not yearlyPriceList:
+			averageYearlyPrice = 0
+		else:
+			averageYearlyPrice = np.mean(yearlyPriceList)
 		issueCostList.append([0, totalScripts, totalIssue, totalCost, averageYearlyPrice])
 		return issueCostList
 
@@ -100,14 +109,15 @@ def exportrecord():
 
 	# Sort alphabetically by name
 	outputDataFrame = outputDataFrame.sort_values(by = [("", "Name")])
-	writer = pd.ExcelWriter("downloads/internalFormularyCosts.xlsx")
+	writer = pd.ExcelWriter("downloads/"+filename)
 	outputDataFrame.to_excel(writer)
 	writer.save()
-	return "internalFormularyCosts.xlsx"
+	return None
 
 if __name__ == '__main__':
-    exportrecord()
-    print("done. file is at internalFormularyCosts.xlsx")
+    fileName = "internalFormularyCosts.xlsx"
+    exportrecord(fileName)
+    print("done. file is at downloads/"+fileName)
 
 # Test to see if categories are correctly assigned
 # writer = pd.ExcelWriter("test.xlsx")

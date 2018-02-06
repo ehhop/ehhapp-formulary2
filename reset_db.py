@@ -2,7 +2,7 @@
 
 import os, database
 
-filename = "formulary2.db"
+filename = "formulary.db"
 
 try:
     os.remove(filename)

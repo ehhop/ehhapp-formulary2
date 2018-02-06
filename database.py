@@ -14,7 +14,6 @@ This hasn't been tested yet...
 from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
 from __init__ import app #import init params like where the db is
-from sqlalchemy import orm
 import json
 #from history_meta import versioned_session #make a versioned db so we can rollback stuff
 
@@ -51,6 +50,7 @@ class Invoice(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     filename = db.Column(db.String(255))
     date_added = db.Column(db.DateTime)
+    checksum = db.Column(db.String(255))
     properties = db.Column(db.Text)
     records = db.relationship("InvoiceRecord", backref='invoice', lazy='dynamic',
                         cascade="all, delete-orphan")
@@ -63,23 +63,23 @@ class InvoiceRecord(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
     invoice_id = db.Column(db.BigInteger, db.ForeignKey('Invoice.id'))
-    exp_code = db.Column(db.Integer)
+    exp_code = db.Column(db.String(255))
     supply_loc = db.Column(db.String(255))
-    item_no = db.Column(db.Integer)
+    item_no = db.Column(db.String(255))
     item_description = db.Column(db.String(255))
     vendor_name = db.Column(db.String(255))
-    vendor_ctg_no = db.Column(db.BigInteger)
+    vendor_ctg_no = db.Column(db.String(255))
     mfr_name = db.Column(db.String(255))
-    mfr_ctlg_no = db.Column(db.BigInteger)
+    mfr_ctlg_no = db.Column(db.String(255))
     comdty_name = db.Column(db.String(255))
     comdty_code = db.Column(db.String(255))
-    requisition_no = db.Column(db.BigInteger)
-    requisition_date = db.Column(db.DateTime)
-    issue_qty = db.Column(db.Float)
+    requisition_no = db.Column(db.String(255))
+    requisition_date = db.Column(db.String(255))
+    issue_qty = db.Column(db.String(255))
     um = db.Column(db.String(255))
-    price = db.Column(db.Float)
-    extended_price = db.Column(db.Float)
-    cost_center_no = db.Column(db.BigInteger)
+    price = db.Column(db.String(255))
+    extended_price = db.Column(db.String(255))
+    cost_center_no = db.Column(db.String(255))
 
 class PersistentMedication(db.Model):
     '''a persistent record in the database that represents a medication record'''
@@ -137,7 +137,7 @@ class PersistentMedication(db.Model):
         record.prescribable = self.prescribable
         record.transactions = [MedicationRecord.transaction(date=h.date,
                                     price=h.price,
-                                    qty=h.quantity) for h in self.history]
+                                    qty=h.quantity) for h in self.history.order_by(asc(MedicationHistory.date))]
         record.category = self.category.name
         record.aliases = [alias.name for alias in self.aliases]
         return record #make sure to return the object we just made
@@ -198,8 +198,7 @@ class Category(db.Model):
 
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     name = db.Column(db.String(255))
-    medications = db.relationship("PersistentMedication", #has many medications
-        backref='category', lazy='dynamic')
+    medications = db.relationship("PersistentMedication", backref="category",lazy="dynamic")
 
 def save_persistent_record(record,ver_db_session=ver_db_session):
     '''saves a MedicationRecord object in the db (just an alias)'''

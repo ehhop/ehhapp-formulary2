@@ -1,16 +1,68 @@
 {% extends 'layout.html' %}
 {% block navbar%}
-                        <li class="inactive"><a href="/medications">Medications</a></li>
-                        <li class="inactive"><a href="/history">History</a></li>
-                        <li class="inactive"><a href="/import">Import</a></li>
-                        <li class="active"><a href="/export">Export</a></li>
+    <li class="inactive"><a href="/medications">Medications</a></li>
+    <li class="inactive"><a href="/history">History</a></li>
+    <li class="inactive"><a href="/import">Import</a></li>
+    <li class="active"><a href="/export">Export</a></li>
 {%endblock%}
 {% block title %}Export | ehhapp-formulary2{% endblock %}
 {% block body %}
-	    <div class="page-header">
-		    <h1>Export</h1>
-	    </div>
-	    <div>
-			<a class="btn btn-lg btn-primary" href="/export/download" role="button">Download Summary Table</a>
-	    </div>
+    <div class="page-header">
+	    <h1>Export</h1>
+    </div>
+	<!-- Default CSS style sheet for boostrap datetimepicker-->
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/css/bootstrap-datetimepicker.css"/>
+    <!-- Copied from https://stackoverflow.com/questions/30782006/bootstrap-3-datetimepicker-doesnt-show-calendar -->
+	<!-- Moments.js CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.3/moment.min.js"></script>
+	<!-- Bootstrap datetimepicker CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
+
+	<!-- Submission Form -->
+	<form action="{{ url_for('downloadFile') }}" method="POST" enctype="multipart/form-data">
+		<!-- Copied from https://eonasdan.github.io/bootstrap-datetimepicker/ -->
+		<div class="container">
+			<div class='col-md-5'>
+				<div class="form-group">
+					<div class='input-group date' id='datetimepicker6'>
+						<input type='text' class="form-control" name = "startDate"/>
+						<span class="input-group-addon">
+							<span class="glyphicon glyphicon-calendar"></span>
+						</span>
+					</div>
+				</div>
+			</div>
+			<div class='col-md-5'>
+				<div class="form-group">
+					<div class='input-group date' id='datetimepicker7'>
+						<input type='text' class="form-control" name = "endDate"/>
+						<span class="input-group-addon">
+							<span class="glyphicon glyphicon-calendar"></span>
+						</span>
+					</div>
+				</div>
+			</div>
+		</div> <!-- container -->
+		<div>
+			<input type="submit" value="Submit" class="btn btn-lg btn-primary" href="/export/download/">
+		</div>
+	</form>
+	<script type="text/javascript">
+		$(function () {
+			$('#datetimepicker6').datetimepicker({
+				format: 'L'
+			});
+			$('#datetimepicker7').datetimepicker({
+				format: 'L'
+				// useCurrent: false //Important! See issue #1075	
+			});
+			$("#datetimepicker6").on("dp.change", function (e) {
+				$('#datetimepicker7').data("DateTimePicker").minDate(e.date);
+			});
+			$("#datetimepicker7").on("dp.change", function (e) {
+				$('#datetimepicker6').data("DateTimePicker").maxDate(e.date);
+			});
+		});
+	</script>
+    
 {% endblock %}
