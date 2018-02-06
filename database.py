@@ -14,6 +14,7 @@ This hasn't been tested yet...
 from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
 from __init__ import app #import init params like where the db is
+from sqlalchemy import orm, asc, desc
 import json
 #from history_meta import versioned_session #make a versioned db so we can rollback stuff
 
