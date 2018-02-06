@@ -75,16 +75,29 @@ def view_medication(pricetable_id):
 def displayDownloadButton():
 	return render_template("export.html")
 
-@app.route("/export/download", methods = ["GET"])
+@app.route("/export/download", methods = ["GET", "POST"])
 def downloadFile():
 	# Download latest invoice file
 	# TODO: need to implement sign-in check
 
 	# Do we need to worry about security for bad filename if we're just downloading?
-        downloadsDir = "export"
-        downloadFileName = "internalFormularyCosts-"+str(int(time.time()))+".xlsx"
-        exportrecord(downloadFileName)
-        return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+	downloadsDir = "downloads"
+	downloadFileName = "internalFormularyCosts-"+str(int(time.time()))+".xlsx"
+
+	if request.method == "POST":
+		if request.form["startDate"] == "" or request.form["endDate"] == "":
+			flash('Error: No selected date range.')
+			return render_template("export.html") 
+		else:
+			startTimeRange = datetime.strptime(request.form["startDate"], "%m/%d/%Y %I:%M %p")
+			endTimeRange = datetime.strptime(request.form["endDate"], "%m/%d/%Y %I:%M %p")
+			print(startTimeRange)
+			print(endTimeRange)
+	else:
+		flash('Error: Post error')
+
+	exportrecord(downloadFileName, startTimeRange, endTimeRange)
+	return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
 
 @app.route("/import", methods=["GET","POST"])
 def upload_invoice():
