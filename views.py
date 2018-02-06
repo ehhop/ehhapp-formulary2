@@ -1,3 +1,4 @@
+from __future__ import print_function
 from __init__ import app
 from flask import render_template, flash, send_from_directory
 import flask.ext.login as flask_login
@@ -11,8 +12,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import mpld3
 import pandas as pd
+import sys
 
-@app.route("/", methods=['GET'])
+#@app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
 def index():
 	#return "HELLO THERE"
@@ -44,19 +46,20 @@ def view_medication(pricetable_id):
 		first_or_404()
 		med = medication.to_class()
 		medications = [medication.to_class()]
-		fig, (ax1,ax2) = plt.subplots(2)
+		fig, ax1 = plt.subplots(1)
 		df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
+		print(med,file=sys.stderr)
 		df.plot(x="date",y="price",marker='o',ax=ax1)
 		ax1.set_title("Price history")
 		ax1.set_ylabel("Price ($)")
 		ax1.set_xlabel("Date")
-		df.groupby([df["date"].dt.year, df["date"].dt.month,df["date"].dt.day])["qty"].sum().plot(kind="bar",ax=ax2)
-		ax2.set_title("Medication volume")
-		ax2.set_ylabel("Doses given")
-		ax2.set_xlabel("Date")
-		fig.subplots_adjust(hspace=1.5)
-		html_figure = mpld3.fig_to_html(fig)
-		return render_template("medications_view.html", 
+		#df.groupby([df["date"].dt.year, df["date"].dt.month,df["date"].dt.day])["qty"].sum().plot(kind="bar",ax=ax2)
+		#ax2.set_title("Medication volume")
+		#ax2.set_ylabel("Doses given")
+		#ax2.set_xlabel("Date")
+		#fig.subplots_adjust(hspace=1.5)
+		html_figure = mpld3.fig_to_html(fig, figid="medgraph")
+		return render_template("medications_view.html",
 				medications=medications,
 		                        html_figure=html_figure)
 
@@ -73,4 +76,3 @@ def downloadFile():
 	downloadsDir = "WHATEVER THE HARD DOWNLOADS DIRECTORY ON THE SERVER IS"
 	downloadFileName = "internalFormularyCosts.xlsx"
 	return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
-
