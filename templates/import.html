@@ -5,27 +5,60 @@
 <li class="active"><a href="/import">Import</a></li>
  <li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
-{% block title %}Medications | ehhapp-formulary2{% endblock %}
+{% block title %}Import | ehhapp-formulary2{% endblock %}
 {% block body %}
-	<h1>Import an invoice</h1>
-	<form action="" method="POST" enctype="multipart/form-data">
-	
-<fieldset class="form-group">
-  <div class="clearfix">
-    	<label for="invoice_file">Upload a new invoice</label>
-	    <div class="input">
-	      	<span class="input-grp-btn">
-				<span class="btn btn-primary btn-file">
-				Browse...
-				<input class="form-control" id="invoice_file" name="invoice_file" type="file" multiple>
-				</span>
-			</span>
-		</div>
-  	</div>
-</fieldset>
-
-<input type="submit" value="Submit" class="btn btn-success">
-</form>
-</section>
-</div><!-- /.container -->
+	<div class="page-header">
+	<h1>Import</h1>
+	</div>
+	<div class="row">
+	<div class="col-lg-6">
+	<form action="" method="POST" enctype="multipart/form-data">       
+		<fieldset class="form-group">
+			<div class="clearfix">
+								   <label for="invoice_file">Select invoice files (.xls or .xlsx) or drag and drop here </label>
+								   	  <input type="file" id="invoice_file" name="invoice_file" class="filestyle" data-input="false" data-btnclass="btn-primary" data-buttonbefore="true" data-badge="true" data-text="Choose files" multiple>
+		</fieldset>
+		<fieldset class="form-group">
+		 <input type="submit" value="Submit" class="btn btn-success">
+		 </form>
+	</div></div>
+	<div class="row">
+	<div class="col-lg-12" style="margin-top:20px;">
+		<p>Invoices must have the following columns with these EXACT titles to be imported:</p>
+	<table class="table table-hover">
+		<thead>
+			<tr>
+			<th>Column title</th>
+			<th>Description</th>
+			</tr>
+		</thead>
+		<tbody>
+		<tr>
+			<td>Item No</td>
+			<td>The medication's unique identifier (used to match medication records together).</td>
+		</tr>
+		<tr>
+			<td>Item Description</td>
+			<td>The name of the medication</td>
+		</tr>
+		<tr>
+			<td>Requisition Date</td>
+			<td>The date that the order for medication was billed to EHHOP</td>
+		</tr>
+		<tr>
+			<td>Issue Qty</td>
+			<td>The amount of medication that was issued in this order.</td>
+		</tr>
+		<tr>
+			<td>Extended Price</td>
+			<td>The amount paid for the order by EHHOP</td>
+		</tr>
+		<tr>
+			<td>"Comdty Name "</td>
+			<td>(optional) The category name of the medication. Note that the extra space after the final character is important.</td>
+		</tr>
+		</tbody>
+	</table>
+	</div>
+	</div>
 {% endblock %}
