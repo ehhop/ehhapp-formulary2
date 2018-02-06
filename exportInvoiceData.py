@@ -51,7 +51,12 @@ def exportrecord(filename, initDateRange = datetime.datetime(1, 1, 1, 0, 0), fin
 			totalScripts += monthylScripts
 			totalIssue += monthlyIssue
 			totalCost += monthlyCost
-		averageYearlyPrice = np.mean(yearlyPriceList)
+		# Return 0 if no prices recorded
+		# if len(yearlyPriceList == 0):
+		if not yearlyPriceList:
+			averageYearlyPrice = 0
+		else:
+			averageYearlyPrice = np.mean(yearlyPriceList)
 		issueCostList.append([0, totalScripts, totalIssue, totalCost, averageYearlyPrice])
 		return issueCostList
 

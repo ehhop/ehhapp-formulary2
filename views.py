@@ -203,8 +203,8 @@ def downloadFile():
 			flash('Error: No selected date range.')
 			return render_template("export.html") 
 		else:
-			startTimeRange = datetime.strptime(request.form["startDate"], "%m/%d/%Y %I:%M %p")
-			endTimeRange = datetime.strptime(request.form["endDate"], "%m/%d/%Y %I:%M %p")
+			startTimeRange = datetime.strptime(request.form["startDate"], "%m/%d/%Y")
+			endTimeRange = datetime.strptime(request.form["endDate"], "%m/%d/%Y")
 			print(startTimeRange)
 			print(endTimeRange)
 	else:
