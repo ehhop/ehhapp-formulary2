@@ -13,6 +13,9 @@ This hasn't been tested yet...
 
 from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
+from flask.ext.login import LoginManager, login_required, login_user, \
+    logout_user, current_user, UserMixin
+import datetime
 from __init__ import app #import init params like where the db is
 from sqlalchemy import orm, asc, desc
 import json
@@ -44,6 +47,15 @@ def get_or_create(model, **kwargs):
     except AssertionError:
         object = model(**kwargs) #return a blank object instatiated with kwargs if not found
         return object, False #set found to false
+
+class User(db.Model, UserMixin):
+    __tablename__ = "users"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(100), unique=True, nullable=False)
+    name = db.Column(db.String(100), nullable=True)
+    avatar = db.Column(db.String(200))
+    tokens = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.datetime.utcnow())
 
 class Invoice(db.Model):
     __tablename__="Invoice"

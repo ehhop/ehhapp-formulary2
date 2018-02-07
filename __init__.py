@@ -10,17 +10,29 @@ so that we can render it as a web service in the future
 Made by Ryan Neff 11/21/17
 '''
 
-from flask import Flask, request, redirect, send_from_directory, Response, stream_with_context, url_for, render_template
+from config import *
+
+import os, json, datetime
+
+from flask import Flask, request, redirect, send_from_directory, \
+	Response, stream_with_context, url_for, render_template, \
+	session
 from flask_mail import Mail
 from requests.auth import HTTPBasicAuth
+from flask.ext.login import LoginManager, login_required, login_user, \
+    logout_user, current_user, UserMixin
+from requests_oauthlib import OAuth2Session
+from requests.exceptions import HTTPError
 
-sqlalchemy_db = "sqlite:///formulary.db"
-flask_secret_key = "flask-test-ehhop"
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 app = Flask(__name__, template_folder='templates')
 app.config['SQLALCHEMY_DATABASE_URI'] = sqlalchemy_db
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = flask_secret_key
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
+login_manager.session_protection = "strong"
 
 import database
 import invoicerecord
