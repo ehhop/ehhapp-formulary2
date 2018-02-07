@@ -1,0 +1,6 @@
+google_client_id = ""
+google_client_secret = ""
+
+flask_secret_key = ""
+
+sqlalchemy_db = "sqlite:///formulary.db"
