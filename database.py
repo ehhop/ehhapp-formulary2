@@ -120,7 +120,8 @@ class PersistentMedication(db.Model):
         init_db.history = [MedicationHistory(medication_id=init_db.id,
                                          date=i.date,
                                          price=i.price,
-                                         quantity = i.qty)
+                                         quantity = i.qty,
+                                         origin = i.originInvoiceHash)
                         for i in record.transactions]
         init_db.category, _ = get_or_create(Category,name=record.category)
         init_db.aliases = [MedicationAlias(medication_id=init_db.id,
@@ -155,7 +156,8 @@ class PersistentMedication(db.Model):
                         [MedicationHistory(medication_id=match_record.id,
                          date=i.date,
                          price=i.price,
-                         quantity = i.qty)
+                         quantity = i.qty,
+                         origin = i.originInvoiceHash)
                     for i in record.transactions]
                     ) #right now, only update the history of the persistent object with this function
             ver_db_session.add(match_record) #add this to the db session
@@ -190,8 +192,10 @@ class MedicationHistory(db.Model):
     date = db.Column(db.DateTime)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
+    origin = db.Column(db.String(255))
     source_id = db.Column(db.Integer, db.ForeignKey('InvoiceRecord.id')) #this is a unique key based on the invoicerecord it came from
     source = db.relationship("InvoiceRecord", foreign_keys='MedicationHistory.source_id')
+
 
 class Category(db.Model):
     '''the category a type of medication belongs to'''
