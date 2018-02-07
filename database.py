@@ -61,8 +61,10 @@ class Invoice(db.Model):
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
 
-    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True) #column in database
+    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id')) #column in db
+    history_obj = db.relationship("MedicationHistory", backref='invoicerecord', lazy='dynamic',
+                        cascade="all, delete-orphan") #type MedicationHistory
     invoice_id = db.Column(db.BigInteger, db.ForeignKey('Invoice.id'))
     exp_code = db.Column(db.String(255))
     supply_loc = db.Column(db.String(255))
@@ -189,6 +191,8 @@ class MedicationHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
                                ondelete="CASCADE")) #belongs to
+    invoice_record_id = db.Column(db.BigInteger, db.ForeignKey('InvoiceRecord.id',
+                               ondelete="CASCADE")) #column
     date = db.Column(db.DateTime)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
