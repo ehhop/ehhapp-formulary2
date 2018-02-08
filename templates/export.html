@@ -19,7 +19,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 
 	<!-- Submission Form -->
-	<form action="{{ url_for('downloadFile') }}" method="POST" enctype="multipart/form-data">
+	<form action="{{ url_for('downloadFile') }}" method="GET" enctype="multipart/form-data">
 		<!-- Copied from https://eonasdan.github.io/bootstrap-datetimepicker/ -->
 		<div class="container">
 			<div class='col-md-5'>
@@ -52,10 +52,12 @@
 	<script type="text/javascript">
 		$(function () {
 			$('#datetimepicker6').datetimepicker({
-				format: 'L'
+				format: 'L',
+				viewMode: 'years'
 			});
 			$('#datetimepicker7').datetimepicker({
-				format: 'L'
+				format: 'L',
+				viewMode: 'years'
 				// useCurrent: false //Important! See issue #1075	
 			});
 			$("#datetimepicker6").on("dp.change", function (e) {
