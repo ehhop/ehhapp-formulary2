@@ -13,6 +13,11 @@ import numpy as np
 import datetime
 
 def exportrecord(filename, initDateRange = datetime.datetime(1, 1, 1, 0, 0), finalDateRange = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999)):
+	# Check if daterange is within 1 year
+	timeDiff = finalDateRange - initDateRange
+	if timeDiff > datetime.timedelta(days = 365):
+		return False
+
 	def bucketAndQuantify(inputTransactionsList):
 		# Input: a list of transactions per MedicationRecord and date range
 		# TODO: Default values for range,
@@ -112,7 +117,7 @@ def exportrecord(filename, initDateRange = datetime.datetime(1, 1, 1, 0, 0), fin
 	writer = pd.ExcelWriter("downloads/"+filename)
 	outputDataFrame.to_excel(writer)
 	writer.save()
-	return None
+	return True
 
 if __name__ == '__main__':
     fileName = "internalFormularyCosts.xlsx"
