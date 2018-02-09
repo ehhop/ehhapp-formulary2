@@ -15,17 +15,28 @@ class MedicationRecord(object):
 		date = datetime.time()
 		price = float()
 		qty = float()
-		def __init__(self, date,price,qty):
+		originInvoiceHash=str()
+		def __init__(self, date,price,qty,originInvoiceHash):
 			self.date = date
 			self.price = price
 			self.qty = qty
+			self.originInvoiceHash = originInvoiceHash
+		def __repr__(self):
+			return "Transaction[Date:"+str(date)+" Price:"+str(price)+" Qty:"+str(qty)+str(self.originInvoiceHash)+"]"
 
 	class transaction():
-		def __init__(self, date=None, price=None, qty=None, source=None):
+		date = datetime.time()
+		price = float()
+		qty = float()
+		originInvoiceHash = str()
+		def __init__(self, date=None, price=None, qty=None, source=None, originInvoiceHash=None):
 			self.date = date if date else datetime.time()
 			self.price = price if price else float()
 			self.qty = qty if qty else float()
 			self.source = source if source else str()
+			self.originInvoiceHash = originInvoiceHash
+		def __repr__(self):
+			return "Transaction[Date:"+str(self.date)+" Price:"+str(self.price)+" Qty:"+str(self.qty)+"Origin:"+str(self.originInvoiceHash)+"]"
 
 	def __init__(self, pricetable_id=None, name=None, common_name=None,transactions=None,
 		dosage=None, admin=None, category=None, prescribable=None, aliases=None):
