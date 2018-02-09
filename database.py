@@ -73,8 +73,10 @@ class Invoice(db.Model):
 class InvoiceRecord(db.Model):
     __tablename__="InvoiceRecord"
 
-    id = db.Column(db.Integer, primary_key=True,autoincrement=True)
-    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id'))
+    id = db.Column(db.Integer, primary_key=True,autoincrement=True) #column in database
+    medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id')) #column in db
+    history_obj = db.relationship("MedicationHistory", backref='invoicerecord', lazy='dynamic',
+                        cascade="all, delete-orphan") #type MedicationHistory
     invoice_id = db.Column(db.BigInteger, db.ForeignKey('Invoice.id'))
     exp_code = db.Column(db.String(255))
     supply_loc = db.Column(db.String(255))
@@ -132,7 +134,8 @@ class PersistentMedication(db.Model):
         init_db.history = [MedicationHistory(medication_id=init_db.id,
                                          date=i.date,
                                          price=i.price,
-                                         quantity = i.qty)
+                                         quantity = i.qty,
+                                         origin = i.originInvoiceHash)
                         for i in record.transactions]
         init_db.category, _ = get_or_create(Category,name=record.category)
         init_db.aliases = [MedicationAlias(medication_id=init_db.id,
@@ -167,7 +170,8 @@ class PersistentMedication(db.Model):
                         [MedicationHistory(medication_id=match_record.id,
                          date=i.date,
                          price=i.price,
-                         quantity = i.qty)
+                         quantity = i.qty,
+                         origin = i.originInvoiceHash)
                     for i in record.transactions]
                     ) #right now, only update the history of the persistent object with this function
             ver_db_session.add(match_record) #add this to the db session
@@ -199,9 +203,12 @@ class MedicationHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
                                ondelete="CASCADE")) #belongs to
+    invoice_record_id = db.Column(db.BigInteger, db.ForeignKey('InvoiceRecord.id',
+                               ondelete="CASCADE")) #column
     date = db.Column(db.DateTime)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
+    origin = db.Column(db.String(255))
     source_id = db.Column(db.Integer, db.ForeignKey('InvoiceRecord.id')) #this is a unique key based on the invoicerecord it came from
     source = db.relationship("InvoiceRecord", foreign_keys='MedicationHistory.source_id')
 

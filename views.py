@@ -1,6 +1,7 @@
 from __init__ import app, login_manager
 from config import *
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
+from __future__ import print_function
 import flask.ext.login as flask_login
 from requests.auth import HTTPBasicAuth
 from flask.ext.login import LoginManager, login_required, login_user, \
@@ -17,9 +18,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import random, string, time
 import pandas as pd
+import sys
 import mpld3
 from exportInvoiceData import exportrecord
-import consolidateRecord 
+import consolidateRecord
 import_dirname = "import/"
 
 class Auth:
@@ -287,7 +289,7 @@ def downloadFile():
 	if request.method == "GET":
 		if request.args["startDate"] == "" or request.args["endDate"] == "":
 			flash('Error: No selected date range.')
-			# return render_template("export.html") 
+			return render_template("export.html")
 		else:
 
 			startTimeRange = datetime.strptime(request.args["startDate"], "%m/%d/%Y")

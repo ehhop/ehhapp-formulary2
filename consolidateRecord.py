@@ -14,6 +14,7 @@ from invoicerecord import MedicationRecord
 import database
 import pandas as pd
 import datetime
+import drugmatch
 
 actualcolumns= ["Exp Code",
                 "Supply Loc",
@@ -69,9 +70,10 @@ def saveinvoicetodb(file):
     ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
     ds = ds[[col for col in actualcolumns if col in ds.columns]]
     invoiceobjs = []
-    invoice_db, is_imported = database.get_or_create(database.Invoice,checksum=hash_file(file))
+    hashMe = hash_file(file)
+    invoice_db, is_imported = database.get_or_create(database.Invoice,checksum=hashMe)
     if is_imported:
-        return False
+        return False,hashMe
     invoice_db.filename=file
     invoice_db.date_added = datetime.datetime.now()
     database.ver_db_session.add(invoice_db)
@@ -86,20 +88,22 @@ def saveinvoicetodb(file):
         invoiceobjs.append(newobj)
     database.ver_db_session.add_all(invoiceobjs)
     database.ver_db_session.commit()
-    return True
+    return True,hashMe
 
 
-def readrecord(file):
+def readrecord(file, hashCode = None):
     ds = pd.read_excel(file,usecols=range(0,17))
     ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
     ds = ds[[col for col in actualcolumns if col in ds.columns]]
     data = dict()
+
+    originInvoiceHash = hashCode if hashCode else hash_file(file)
     for ix,row in ds.iterrows():
         pricetable_id = int(row["Item No"])           #Medication ID
 
         if numpy.isnan(pricetable_id):
             continue
-        
+
         medication_name = row["Item Description"]         #Medicaction Name
         qty = int(row["Issue Qty"])             #Quantity of Medication issued
         price = float(row["Extended Price"])/qty       #Medication price
@@ -109,19 +113,27 @@ def readrecord(file):
 
         #Insantiate a new Medication record
         record = MedicationRecord(pricetable_id = pricetable_id, \
-            name = medication_name, category=category,\
-            transactions = [MedicationRecord.transaction(date_issued,price,qty)])
+            name = medication_name,\
+            category=category,\
+            transactions = [MedicationRecord.transaction(date = date_issued,price = price,qty = qty,originInvoiceHash = originInvoiceHash)])
         #Check if the record is in database, if not add it
         if record in data:
             #since the record is in the database, update transactions
             old_record = data[record]
             old_record.transactions += record.transactions
         else:
+            #Add record to database, only here to query to save time
+            dosage, admin, common_name = drugmatch.rxGetDrugProperties(medication_name)
+            record.dosage = dosage
+            record.admin = admin
+            record.common_name = common_name
             data[record] = record
 
-    print(len(data))
+
+    #print("HashOrigin Is:"+str(originInvoiceHash))
 
     for key, value in data.items():
+        print value.transactions
         database.save_persistent_record(value) #cross your fingers!
             #print(value)
 
@@ -129,9 +141,9 @@ def readrecord(file):
 
 def main(filename):
     try:
-        result = saveinvoicetodb(filename)
+        result,hashMe = saveinvoicetodb(filename)
         if result:
-            readrecord(filename)
+            readrecord(filename,hashMe)
             return "Success",True
         else:
             return "Duplicate invoice in db",False
