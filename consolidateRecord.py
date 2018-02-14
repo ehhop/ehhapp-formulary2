@@ -105,6 +105,7 @@ def readrecord(file, hashCode = None):
             continue
 
         medication_name = row["Item Description"]         #Medicaction Name
+        mfgID = row["Mfr Ctlg No"]
         qty = int(row["Issue Qty"])             #Quantity of Medication issued
         price = float(row["Extended Price"])/qty       #Medication price
         date_issued = row["Requisition Date"]
@@ -123,17 +124,18 @@ def readrecord(file, hashCode = None):
             old_record.transactions += record.transactions
         else:
             #Add record to database, only here to query to save time
-            dosage, admin, common_name = drugmatch.rxGetDrugProperties(medication_name)
+            dosage, admin, common_name, cui = drugmatch.rxGetDrugProperties(medication_name,mfgID)
             record.dosage = dosage
             record.admin = admin
             record.common_name = common_name
+            record.cui = cui
             data[record] = record
 
 
     #print("HashOrigin Is:"+str(originInvoiceHash))
 
     for key, value in data.items():
-        print value.transactions
+        #print value.transactions
         database.save_persistent_record(value) #cross your fingers!
             #print(value)
 
@@ -152,9 +154,6 @@ def main(filename):
         return "Rejected invoice: error message: %s" % str(err),False
 
 if __name__ == '__main__':
-    result = saveinvoicetodb("invoice.xls")
-    if result:
+        saveinvoicetodb("invoice.xls")
         readrecord("invoice.xls")
-        print("done reading invoice.")
-    else:
-        print("invoice already imported. Stop.")
+        print "Done reading all records"
