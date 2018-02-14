@@ -108,6 +108,7 @@ class PersistentMedication(db.Model):
     common_name = db.Column(db.String(255))
     dosage = db.Column(db.String(255))
     admin = db.Column(db.String(255))
+    cui = db.Column(db.String(255))
     prescribable = db.Column(db.Boolean)
     aliases = db.relationship("MedicationAlias", backref='medication', lazy='dynamic',
                         cascade="all, delete-orphan") #has many aliases
@@ -203,8 +204,7 @@ class MedicationHistory(db.Model):
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
                                ondelete="CASCADE")) #belongs to
-    invoice_record_id = db.Column(db.BigInteger, db.ForeignKey('InvoiceRecord.id',
-                               ondelete="CASCADE")) #column
+    #invoice_record_id = db.Column(db.BigInteger, db.ForeignKey('InvoiceRecord.id',ondelete="CASCADE")) #column
     date = db.Column(db.DateTime)
     price = db.Column(db.Float)
     quantity = db.Column(db.Integer)
