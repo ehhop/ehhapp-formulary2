@@ -1,6 +1,7 @@
 from __init__ import app, login_manager
 from config import *
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
+from __future__ import print_function
 import flask.ext.login as flask_login
 from requests.auth import HTTPBasicAuth
 from flask.ext.login import LoginManager, login_required, login_user, \
@@ -17,9 +18,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import random, string, time
 import pandas as pd
+import sys
 import mpld3
 from exportInvoiceData import exportrecord
-import consolidateRecord 
+import consolidateRecord
 import_dirname = "import/"
 
 class Auth:
@@ -285,25 +287,29 @@ def displayDownloadButton():
 def downloadFile():
 	# Download latest invoice file
 	# TODO: need to implement sign-in check
-
-	# Do we need to worry about security for bad filename if we're just downloading?
-	downloadsDir = "downloads"
-	downloadFileName = "internalFormularyCosts-"+str(int(time.time()))+".xlsx"
-
-	if request.method == "POST":
-		if request.form["startDate"] == "" or request.form["endDate"] == "":
+	if request.method == "GET":
+		if request.args["startDate"] == "" or request.args["endDate"] == "":
 			flash('Error: No selected date range.')
-			return render_template("export.html") 
+			return render_template("export.html")
 		else:
-			startTimeRange = datetime.strptime(request.form["startDate"], "%m/%d/%Y")
-			endTimeRange = datetime.strptime(request.form["endDate"], "%m/%d/%Y")
-			print(startTimeRange)
-			print(endTimeRange)
-	else:
-		flash('Error: Post error')
 
-	exportrecord(downloadFileName, startTimeRange, endTimeRange)
-	return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+			startTimeRange = datetime.strptime(request.args["startDate"], "%m/%d/%Y")
+			endTimeRange = datetime.strptime(request.args["endDate"], "%m/%d/%Y")
+			# print(startTimeRange)
+			# print(endTimeRange)
+	else:
+		flash('Error: GET error')
+		return render_template("export.html")
+	# Define name of file to download
+	downloadsDir = "downloads"
+	downloadFileName = "internalFormularyCosts_"+"from"+startTimeRange.strftime("%m%d%Y")+"to"+endTimeRange.strftime("%m%d%Y")+"_"+str(int(time.time()))+".xlsx"
+	exportSuccessful = exportrecord(downloadFileName, startTimeRange, endTimeRange)
+	if exportSuccessful:
+		return send_from_directory(downloadsDir, downloadFileName, as_attachment=True)
+	else:
+		flash('Error: Date range longer than 1 year')
+		return render_template("export.html")
+
 
 @app.route("/import", methods=["GET","POST"])
 def upload_invoice():
