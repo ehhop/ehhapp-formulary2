@@ -26,7 +26,7 @@ class Auth:
     """Google Project Credentials"""
     CLIENT_ID = google_client_id
     CLIENT_SECRET = google_client_secret
-    REDIRECT_URI = 'https://formulary.ehhapp.org/'
+    REDIRECT_URI = redirect_uri
     AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
     TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
     USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
@@ -59,7 +59,8 @@ def login():
     auth_url, state = google.authorization_url(
         Auth.AUTH_URI, access_type='offline')
     session['oauth_state'] = state
-    return render_template('login.html', auth_url=auth_url)
+    return render_template('login.html', auth_url=auth_url,
+                           google_client_id = google_client_id)
 
 
 @app.route('/gCallback')

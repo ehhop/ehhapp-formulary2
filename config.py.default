@@ -3,4 +3,6 @@ google_client_secret = ""
 
 flask_secret_key = ""
 
+redirect_uri = ""
+
 sqlalchemy_db = "sqlite:///formulary.db"
