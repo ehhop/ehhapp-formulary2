@@ -100,8 +100,6 @@ class PersistentMedication(db.Model):
     '''a persistent record in the database that represents a medication record'''
     __tablename__='PersistentMedication'
 
-    id = db.Column(db.BigInteger, primary_key=True)
-
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     pricetable_id = db.Column(db.Integer) #this is the ID on the invoice, the DB has it's own
     name = db.Column(db.String(255))
