@@ -126,7 +126,8 @@ def saveinvoicetodb(file):
     for key, value in data.items():
         #print value.transactions
         persistent_med = database.save_persistent_record(value, commit=False)
-        if persistent_med.cui == None:
+        print(persistent_med.cui)
+        if len(persistent_med.cui)==0:
             starttime = time.time()
             finish = False
             retries = 0
@@ -142,7 +143,7 @@ def saveinvoicetodb(file):
             if retries == max_retries:
                 print("SUPER ERROR: Hit max retries.")
                 return False, hashMe
-            if time.time()-starttime<2:
+            if time.time()-starttime<1:
                 time.sleep(time.time()-starttime)
             persistent_med.dosage = dosage
             persistent_med.admin = admin
