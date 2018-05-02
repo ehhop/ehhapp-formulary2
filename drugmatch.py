@@ -63,7 +63,7 @@ def rxGetDrugProperties(name,mfgID = None, cui = None):
 			print("DrugMatch - Drug:"+name+" Not Found, Attempting Workaround...")
 			return rxGetDrugProperties(name, cui = backupSearch(mfgID))
 		print("DrugMatch - Drug:"+name+" Could Not Be Identified")
-		return -1, -1, -1, -1
+		return None, None, None, None
 def get_json(url):
 	opener = urllib2.build_opener()
 	opener.addheaders = [('Authorization', 'apikey token=' + '5c307a27-6d44-4c69-9110-b9c1d0ba3186')]

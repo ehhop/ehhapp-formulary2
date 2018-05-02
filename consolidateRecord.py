@@ -76,8 +76,6 @@ def saveinvoicetodb(file):
         return False,hashMe
     invoice_db.filename=file
     invoice_db.date_added = datetime.datetime.now()
-    database.ver_db_session.add(invoice_db)
-    database.ver_db_session.commit()
     for ix,row in ds.iterrows():
         newobj = database.InvoiceRecord(invoice_id=invoice_db.id)
         for df_col in ds.columns:
@@ -85,19 +83,11 @@ def saveinvoicetodb(file):
             setattr(newobj,col,str(row[df_col]))
             #print(col,getattr(newobj,col))
         #break
-        invoiceobjs.append(newobj)
-    database.ver_db_session.add_all(invoiceobjs)
-    database.ver_db_session.commit()
-    return True,hashMe
+        invoice_db.records.append(newobj)
 
-
-def readrecord(file, hashCode = None):
-    ds = pd.read_excel(file,usecols=range(0,17))
-    ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
-    ds = ds[[col for col in actualcolumns if col in ds.columns]]
     data = dict()
 
-    originInvoiceHash = hashCode if hashCode else hash_file(file)
+    originInvoiceHash = hashMe 
     for ix,row in ds.iterrows():
         pricetable_id = int(row["Item No"])           #Medication ID
 
@@ -131,21 +121,33 @@ def readrecord(file, hashCode = None):
             record.cui = cui
             data[record] = record
 
-
     #print("HashOrigin Is:"+str(originInvoiceHash))
-
+    persistentmeds = []
     for key, value in data.items():
         #print value.transactions
-        database.save_persistent_record(value) #cross your fingers!
+        persistentmeds.append(database.save_persistent_record(value, commit=False)) #cross your fingers!
             #print(value)
-
+    database.ver_db_session.add(invoice_db)
+    database.ver_db_session.add_all(persistentmeds)
+    database.ver_db_session.commit() #cross your fingers!
+    return True, hashMe
     #Generate PersistntMedication Record for each item, and add to database
+
+def save_hash_for_invoice(invoice_id):
+    try:
+        invoice_db = database.Invoice.query.get(invoice_id)
+        hashMe = hash_file(invoice_db.filename)
+        invoice_db.checksum = hashMe
+        database.ver_db_session.add(invoice_db)
+        database.ver_db_session.commit()
+    except BaseException as msg:
+        return "An error occurred: %s" % msg
+    return None
 
 def main(filename):
     try:
         result,hashMe = saveinvoicetodb(filename)
         if result:
-            readrecord(filename,hashMe)
             return "Success",True
         else:
             return "Duplicate invoice in db",False

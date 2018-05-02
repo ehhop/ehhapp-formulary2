@@ -38,7 +38,7 @@ def get_all_medication_records():
     '''
     return [i.to_class() for i in PersistentMedication.query.all()]
 
-def save_persistent_record(record,ver_db_session=ver_db_session):
+def save_persistent_record(record,ver_db_session=ver_db_session, commit=True):
     '''save_persistent_record()
     Description: 
         Saves a MedicationRecord object in the db (abstraction layer)
@@ -47,7 +47,7 @@ def save_persistent_record(record,ver_db_session=ver_db_session):
         medrecord = MedicationRecord(id=12345,...)
         save_persistent_record(medrecord)
     '''
-    return PersistentMedication.create_or_update(record)
+    return PersistentMedication.create_or_update(record, commit=commit)
 
 #copypasta from https://stackoverflow.com/questions/6587879/how-to-elegantly-check-the-existence-of-an-object-instance-variable-and-simultan
 def get_or_create(model, **kwargs):
@@ -279,7 +279,7 @@ class PersistentMedication(db.Model):
         return record #make sure to return the object we just made
 
     @classmethod #this means that a new PersistentMedication record is loaded (so you don't have to)
-    def create_or_update(cls,record,ver_db_session=ver_db_session):
+    def create_or_update(cls,record,ver_db_session=ver_db_session, commit=True):
         '''Usage: checks if a PersistentMedication exists for the passed MedicationRecord object in the db and 
         updates the history accordingly if so.
 
@@ -304,12 +304,12 @@ class PersistentMedication(db.Model):
                     for i in record.transactions]
                     ) #right now, only update the history of the persistent object with this function
             ver_db_session.add(match_record) #add this to the db session
-            ver_db_session.commit() #commits the record
+            if commit: ver_db_session.commit() #commits the record
             return match_record #return the updated persistentmed object
         else: # if we are creating a new bucket
             db_record = PersistentMedication.from_class(record) #instantiate the persistentmed from the medrecord class object
             ver_db_session.add(db_record) #add this to the db session
-            ver_db_session.commit() #commit
+            if commit: ver_db_session.commit() #commit
             return db_record #return the new persistentmed bucket
 
 class MedicationAlias(db.Model):
