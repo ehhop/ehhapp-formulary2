@@ -15,6 +15,7 @@ import database
 import pandas as pd
 import datetime
 import drugmatch
+import time
 
 actualcolumns= ["Exp Code",  #these are the column names in our Invoice file headers
                 "Supply Loc",
@@ -126,7 +127,23 @@ def saveinvoicetodb(file):
         #print value.transactions
         persistent_med = database.save_persistent_record(value, commit=False)
         if persistent_med.cui == None:
-            dosage, admin, common_name, cui = drugmatch.rxGetDrugProperties(persistent_med.name,mfgID)
+            starttime = time.time()
+            finish = False
+            retries = 0
+            max_retries = 5
+            while (finish==False)&(retries<max_retries):
+                try:
+                    dosage, admin, common_name, cui = drugmatch.rxGetDrugProperties(persistent_med.name,mfgID)
+                    finish = True
+                except Exception as msg:
+                    print("An error occurred in drugmatch: %s"%msg)
+                    retries += 1
+                    pass
+            if retries == max_retries:
+                print("SUPER ERROR: Hit max retries.")
+                return False, hashMe
+            if time.time()-starttime<2:
+                time.sleep(time.time()-starttime)
             persistent_med.dosage = dosage
             persistent_med.admin = admin
             persistent_med.common_name = common_name
