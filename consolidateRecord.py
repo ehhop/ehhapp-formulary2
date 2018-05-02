@@ -156,4 +156,4 @@ def main(filename):
 if __name__ == '__main__':
         saveinvoicetodb("invoice.xls")
         readrecord("invoice.xls")
-        print "Done reading all records"
+        print("Done reading all records")

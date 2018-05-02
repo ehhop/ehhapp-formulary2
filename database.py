@@ -240,6 +240,7 @@ class PersistentMedication(db.Model):
         init_db.dosage = record.dosage
         init_db.admin = record.admin
         init_db.prescribable = record.prescribable
+        init_db.cui = record.cui
         init_db.history = [MedicationHistory(medication_id=init_db.id,
                                          date=i.date,
                                          price=i.price,
@@ -268,6 +269,7 @@ class PersistentMedication(db.Model):
         record.dosage = self.dosage
         record.admin = self.admin
         record.prescribable = self.prescribable
+        record.cui = self.cui
         record.transactions = [MedicationRecord.transaction(date=h.date,
                                     price=h.price,
                                     qty=h.quantity) for h in self.history.order_by(asc(MedicationHistory.date))] #populate MedicationRecord.transactions
@@ -380,7 +382,7 @@ class User(db.Model, UserMixin):
 
     __tablename__ = "user" # the table in the sqlite file this class refers to
 
-    email = db.Column(db.String(100), unique=True, nullable=False) #user's email
+    email = db.Column(db.String(100), unique=True, nullable=False,primary_key=True) #user's email
     name = db.Column(db.String(100), nullable=True) #user's real name
     avatar = db.Column(db.String(200)) #this is going to be a URL for a gravatar??
     tokens = db.Column(db.Text) #this is where the Google OAuth2 token will be saved

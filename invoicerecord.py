@@ -15,19 +15,6 @@ class MedicationRecord(object):
 		date = datetime.time()
 		price = float()
 		qty = float()
-		originInvoiceHash=str()
-		def __init__(self, date,price,qty,originInvoiceHash):
-			self.date = date
-			self.price = price
-			self.qty = qty
-			self.originInvoiceHash = originInvoiceHash
-		def __repr__(self):
-			return "Transaction[Date:"+str(date)+" Price:"+str(price)+" Qty:"+str(qty)+str(self.originInvoiceHash)+"]"
-
-	class transaction():
-		date = datetime.time()
-		price = float()
-		qty = float()
 		originInvoiceHash = str()
 		def __init__(self, date=None, price=None, qty=None, source=None, originInvoiceHash=None):
 			self.date = date if date else datetime.time()
@@ -39,7 +26,7 @@ class MedicationRecord(object):
 			return "Transaction[Date:"+str(self.date)+" Price:"+str(self.price)+" Qty:"+str(self.qty)+"Origin:"+str(self.originInvoiceHash)+"]"
 
 	def __init__(self, pricetable_id=None, name=None, common_name=None,transactions=None,
-		dosage=None, admin=None, category=None, prescribable=None, aliases=None):
+		dosage=None, admin=None, category=None, prescribable=None, aliases=None, cui=None):
 		self.id = pricetable_id if pricetable_id else int() #pricetable id - the item ID from the invoice
 		self.name = name if name else str()
 		self.common_name = common_name if common_name else str() #Acetaminophen = Tylenol
@@ -49,6 +36,7 @@ class MedicationRecord(object):
 		self.category = category if category else str() #class of drug
 		self.prescribable = prescribable if prescribable else bool()
 		self.aliases = aliases if aliases else list([]) #different names
+		self.cui = cui if cui else str()
 
 	def __hash__(self):
 		return hash(self.id)

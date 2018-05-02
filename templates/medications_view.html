@@ -14,9 +14,30 @@
 		    <h1>History for year {{year}}</h1>
 		    <h3>{{medications[0].name}}</h3>
 	    </div>
+	    <h4>Information</h4>
+	    <table class="table table-hover">
+		    <thead>
+			    <th>Property</th>
+			    <th>Value</th>
+		    </thead>
+		   <tbody>
+			<tr><td>Common Name</td><td>{{medications[0].common_name}}</td></tr>
+			<tr><td>Aliases</td><td>{% if medications[0].aliases|length > 0 %}
+					{%for a in medications[0].aliases %}
+					{{a.name}}; {%endfor%}
+					{%else%}
+					None
+				       {%endif%}</td></tr>
+			<tr><td>Dose</td><td>{{medications[0].dosage}}</td></tr>
+			<tr><td>Form</td><td>{{medications[0].admin}}</td></tr>
+			<tr><td>More information</td><td><a href="https://mor.nlm.nih.gov/RxNav/search?searchBy=RXCUI&searchTerm={{medications[0].cui}}#class">Open</a></td></tr>
+			<tr><td>Category</td><td>{{medications[0].category}}</td></tr>
+			<tr><td>Can prescribe?</td><td>{{medications[0].prescribable}}</td></tr>
+		   </tbody>
+	    </table>
+	    <h4>Price history</h4>
 	    <table class="table table-hover">
 		<thead>
-			<th> Category </th>
 			<th> Start Price </th>
 			<th> End Price </th>
 			<th> % chg</th>
@@ -28,7 +49,6 @@
 		<tbody>
 		{% for med in medications %}
 		<tr>
-			<td> {{med.category}} </td>
 			<td> ${{ med.transactions[0].price | round(3) }}</td>
 			<td> ${{ med.transactions[-1].price | round(3) }}</td>
 			<td> {{(med.transactions[-1].price/med.transactions[0].price*100-100) | round(2)}}%</td>

@@ -3,7 +3,7 @@ import os
 import sys
 import requests
 import json
-import urllib2
+import urllib as urllib2
 import simplejson
 from pprint import pprint
 from zeep import Client
@@ -56,13 +56,13 @@ def rxGetDrugProperties(name,mfgID = None, cui = None):
 		common_name = propertyJSON['rxtermsProperties']['displayName']
 
 		common_name = common_name.partition("(")[0]
-		print "DrugMatch - Drug:"+name+" Identified Successfully: "+common_name
+		print("DrugMatch - Drug:"+name+" Identified Successfully: "+common_name)
 		return dosage, admin, common_name, cui
 	except:
 		if (mfgID != None):
-			print "DrugMatch - Drug:"+name+" Not Found, Attempting Workaround..."
+			print("DrugMatch - Drug:"+name+" Not Found, Attempting Workaround...")
 			return rxGetDrugProperties(name, cui = backupSearch(mfgID))
-		print "DrugMatch - Drug:"+name+" Could Not Be Identified"
+		print("DrugMatch - Drug:"+name+" Could Not Be Identified")
 		return -1, -1, -1, -1
 def get_json(url):
 	opener = urllib2.build_opener()
@@ -103,7 +103,7 @@ def backupSearch(mfgID):
 	'''
 if __name__ == '__main__':
 	pass
-	print rxGetDrugProperties("PANTOPRAZOLE 40MG TAB","00008084181")
-	print rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220")
+	print(rxGetDrugProperties("PANTOPRAZOLE 40MG TAB","00008084181"))
+	print(rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220"))
 	#print connectionCheck()
 	#print rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220")

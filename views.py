@@ -1,7 +1,6 @@
 from __init__ import app, login_manager
 from config import *
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
-from __future__ import print_function
 import flask.ext.login as flask_login
 from requests.auth import HTTPBasicAuth
 from flask.ext.login import LoginManager, login_required, login_user, \
