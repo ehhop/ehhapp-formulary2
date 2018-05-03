@@ -100,7 +100,7 @@ def saveinvoicetodb(file):
             continue
 
         medication_name = row["Item Description"]         #Medicaction Name
-        mfgID = row["Mfr Ctlg No"]
+        mfgID = row["Mfr Ctlg No"] if "Mfr Ctlg No" in row else ""
         qty = int(row["Issue Qty"])             #Quantity of Medication issued
         price = float(row["Extended Price"])/qty       #Medication price
         date_issued = row["Requisition Date"]
