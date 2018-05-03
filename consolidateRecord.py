@@ -127,6 +127,9 @@ def saveinvoicetodb(file):
         #print value.transactions
         persistent_med = database.save_persistent_record(value, commit=False)
         print(persistent_med.cui)
+        if persistent_med.cui == None: 
+            persistentmeds.append(persistent_med)
+            continue
         if len(persistent_med.cui)==0:
             starttime = time.time()
             finish = False

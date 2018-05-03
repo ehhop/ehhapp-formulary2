@@ -24,7 +24,7 @@
 			<tr><td>Common Name</td><td>{{medications[0].common_name}}</td></tr>
 			<tr><td>Aliases</td><td>{% if medications[0].aliases|length > 0 %}
 					{%for a in medications[0].aliases %}
-					{{a.name}}; {%endfor%}
+					{{a}}; {%endfor%}
 					{%else%}
 					None
 				       {%endif%}</td></tr>
