@@ -1,8 +1,8 @@
+import matplotlib
+matplotlib.use('Agg')
 import pytz, os, shutil, random, string, sys, time, pandas as pd, mpld3
 from datetime import datetime, timedelta
-import matplotlib
 import matplotlib.pyplot as plt
-matplotlib.use('Agg')
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask.ext.login as flask_login
 from flask.ext.login import LoginManager, login_required, login_user, \
@@ -138,14 +138,60 @@ def view_all_medications():
 				medout.append(m)
 		medications = medout
 	for m in medications: 
-		m.spend = sum([t.qty*t.price for t in m.transactions])
+		m.spend = round(sum([t.qty*t.price for t in m.transactions]),2)
 		m.bought = sum([t.qty for t in m.transactions if t.qty>0])
 		m.sold = sum([t.qty for t in m.transactions if t.qty<0])
 		m.scripts = len(m.transactions)
 		m.end_price = round(m.transactions[-1].price,2)
 		m.start_price = round(m.transactions[0].price,2)
 		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
+
 	return render_template("medications.html", year=year,medications=medications)
+
+@app.route("/spending")
+@app.route("/piechart")
+def piechart():
+	#this is an array of type MedicationRecord objects
+	year = request.values.get("year","0")
+	medications = database.PersistentMedication.query. \
+		order_by(database.PersistentMedication.name.asc()).\
+		all()
+	medications = [i.to_class() for i in medications]
+	if year!="0":
+		medout = []
+		for m in medications:
+			m.transactions = [t for t in m.transactions if t.date.year==int(year)]
+			if len(m.transactions)!=0:
+				medout.append(m)
+		medications = medout
+
+	plt.style.use('ggplot')
+	scale = 0.3
+	rcParams['figure.figsize'] = (8*scale,8*scale)
+	rcParams['figure.dpi'] = 300
+	rcParams["legend.labelspacing"]=0
+	rcParams["legend.columnspacing"] = 0
+	rcParams["legend.shadow"] = False
+	rcParams["legend.frameon"] = False
+	rcParams["legend.borderpad"] = 0
+
+	def my_autopct(pct):
+	    return ('%.2f%%' % pct) if pct > 1.5 else ''
+
+	med_df = pd.DataFrame([{"name":m.name,
+	                        "category":m.category.split(" - ")[0].split(",")[0].strip() if m.category!=None else "Other",
+	                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+	data = med_df.pivot_table(index="category",values="price_spent").\
+	sort_values("price_spent",ascending=False)["price_spent"]
+
+	labels = [n if v > data.sum() * 0.015 else '' for n, v in zip(data.index, data)]
+
+	fig, ax1 = plt.subplots(1)
+	data.plot.pie(y="price_spent",autopct=my_autopct,labels=labels,title="Dollars spent on medications",label="",ax=ax1,radius=0.6)
+
+	html_figure = mpld3.fig_to_html(fig)
+
+	return render_template("piechart.html", year=year,html_figure=html_figure)
 
 import seaborn as sb
 
@@ -275,14 +321,43 @@ def view_medication_history(year=None,search_term = None):
 			ax2.set_ylabel("Price per dose ($)")
 			ax2.legend_.remove()
 
-			html_figure = mpld3.fig_to_html(fig)
+			html_figure1 = mpld3.fig_to_html(fig)
+
+			medications = meds 
+
+			plt.style.use('ggplot')
+			scale = 0.25
+			rcParams['figure.figsize'] = (8*scale,8*scale)
+			rcParams['figure.dpi'] = 300
+			rcParams["legend.labelspacing"]=0
+			rcParams["legend.columnspacing"] = 0
+			rcParams["legend.shadow"] = False
+			rcParams["legend.frameon"] = False
+			rcParams["legend.borderpad"] = 0
+
+			def my_autopct(pct):
+			    return ('%.2f%%' % pct) if pct > 1.5 else ''
+
+			med_df = pd.DataFrame([{"name":m.name,
+			                        "category":m.name,
+			                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+			data = med_df.pivot_table(index="category",values="price_spent").\
+			sort_values("price_spent",ascending=False)["price_spent"]
+
+			labels = [n if v > data.sum() * 0.015 else '' for n, v in zip(data.index, data)]
+
+			fig, ax1 = plt.subplots(1)
+			data.plot.pie(y="price_spent",autopct=my_autopct,labels=labels,title="Dollars spent on medications",label="",ax=ax1,radius=0.5)
+
+			html_figure2 = mpld3.fig_to_html(fig)
 	else:
 		meds=[]
-		html_figure=""
+		html_figure1=""
+		html_figure2=""
 
 	return render_template("medications_view_history.html", 
 			medications=meds,year=year,
-	        html_figure=html_figure)
+	        html_figure1=html_figure1,html_figure2=html_figure2)
 
 @app.route("/export")
 def displayDownloadButton():
