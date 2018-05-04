@@ -47,29 +47,13 @@
 		<tr>
 			<td> <a href="/medications/{{med.id}}?year={{year}}">{{ med.name }}</a></td>
 			<td> {{med.category}} </td>
-			<td> ${{ med.transactions[0].price | round(3) }}</td>
-			<td> ${{ med.transactions[-1].price | round(3) }}</td>
-			<td> {{(med.transactions[-1].price/med.transactions[0].price*100-100) | round(2)}}%</td>
-			{% set spendcounter = {med.name:0} %}
-			{% for m in med.transactions %}
-				{{ increment(spendcounter,med.name,inc=m.qty|int*m.price|float) }}
-			{% endfor %}
-			<td> ${{spendcounter[med.name]|round(2)}}</td>
-			{% set counter = {med.name:0} %}
-			{% for m in med.transactions %}
-				{% if m.qty|int > 0 %}
-					{{ increment(counter,med.name,inc=m.qty|int) }}
-				{% endif %}
-			{% endfor %}
-			<td> {{counter[med.name]}}</td>
-			{% set returncounter = {med.name:0} %}
-			{% for m in med.transactions %}
-				{% if m.qty|int < 0 %}
-					{{ increment(returncounter,med.name,inc=m.qty|int*-1) }}
-				{% endif %}
-			{% endfor %}
-			<td> {{returncounter[med.name]}}</td>
-			<td> {{med.transactions | length}} </td>
+			<td> ${{med.start_price}}</td>
+			<td> ${{med.end_price}}</td>
+			<td> {{med.pct_change}}%</td>
+			<td> ${{med.spend}}</td>
+			<td> {{med.bought}}</td>
+			<td> {{med.sold}}</td>
+			<td> {{med.scripts}} </td>
 		</tr>
 		{% endfor %}
 		</tbody>

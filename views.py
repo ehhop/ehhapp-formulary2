@@ -1,26 +1,24 @@
-from __init__ import app, login_manager
-from config import *
+import pytz, os, shutil, random, string, sys, time, pandas as pd, mpld3
+from datetime import datetime, timedelta
+import matplotlib
+import matplotlib.pyplot as plt
+matplotlib.use('Agg')
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask.ext.login as flask_login
-from requests.auth import HTTPBasicAuth
 from flask.ext.login import LoginManager, login_required, login_user, \
     logout_user, current_user, UserMixin
+from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import HTTPError
 from oauth2client import client as gauthclient
 from oauth2client import crypt
-import pytz, os, shutil, random, string, sys
-from datetime import datetime, timedelta
+
+from config import *
 import database
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import random, string, time
-import pandas as pd
-import sys
-import mpld3
+from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
 import consolidateRecord
+
 import_dirname = "import/"
 
 class Auth:
@@ -128,7 +126,7 @@ def add_invoice():
 def view_all_medications():
 	#this is an array of type MedicationRecord objects
 	year = request.values.get("year","0")
-	medications = database.PersistentMedication.query.\
+	medications = database.PersistentMedication.query. \
 		order_by(database.PersistentMedication.name.asc()).\
 		all()
 	medications = [i.to_class() for i in medications]
@@ -139,6 +137,14 @@ def view_all_medications():
 			if len(m.transactions)!=0:
 				medout.append(m)
 		medications = medout
+	for m in medications: 
+		m.spend = sum([t.qty*t.price for t in m.transactions])
+		m.bought = sum([t.qty for t in m.transactions if t.qty>0])
+		m.sold = sum([t.qty for t in m.transactions if t.qty<0])
+		m.scripts = len(m.transactions)
+		m.end_price = round(m.transactions[-1].price,2)
+		m.start_price = round(m.transactions[0].price,2)
+		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
 	return render_template("medications.html", year=year,medications=medications)
 
 import seaborn as sb
@@ -149,7 +155,7 @@ def view_medication(pricetable_id):
 		year = request.values.get("year","2017")
 		if year=="0":
 			year="2017"
-		medication = database.PersistentMedication.query.\
+		medication = database.PersistentMedication.query. \
 			filter_by(pricetable_id=pricetable_id).\
 			first_or_404()
 		med = medication.to_class()
