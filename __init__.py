@@ -3,7 +3,7 @@
 '''
 __init__.py
 
-Holds the config params and starts the Flask web app 
+Holds the config params and starts the Flask web app
 for this python formulary library
 so that we can render it as a web service in the future
 

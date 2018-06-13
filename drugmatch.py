@@ -103,7 +103,7 @@ def backupSearch(mfgID):
 	'''
 if __name__ == '__main__':
 	pass
-	print(rxGetDrugProperties("PANTOPRAZOLE 40MG TAB","00008084181"))
-	print(rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220"))
+	#print(rxGetDrugProperties("PANTOPRAZOLE 40MG TAB","00008084181"))
+	#print(rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220"))
 	#print connectionCheck()
-	#print rxGetDrugProperties("VENTOLIN HFA 90MCG INH 18GM - OPD ONLY","00173068220")
+	print(rxGetDrugProperties("SIMVASTATIN TAB 20MG","55111019990"))
