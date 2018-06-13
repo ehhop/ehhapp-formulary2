@@ -199,12 +199,14 @@ import seaborn as sb
 def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
 		year = request.values.get("year","2017")
-		if year=="0":
-			year="2017"
+#		if year=="0":
+#			year="2017"
 		medication = database.PersistentMedication.query. \
 			filter_by(pricetable_id=pricetable_id).\
 			first_or_404()
 		med = medication.to_class()
+		if year=="0":
+		    year = str(max([t.date.year for t in med.transactions]))
 		med.transactions = [t for t in med.transactions if t.date.year==int(year)]
 		medications = [med]
 		fig, (ax1,ax2) = plt.subplots(2)
