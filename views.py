@@ -88,6 +88,8 @@ def googleOAuthTokenVerify():				# authenticate with Google for Icahn accounts
 		database.ver_db_session.add(user)
 		database.ver_db_session.commit()
 		flask_login.login_user(user, remember=True)	# log them in in their browser
+		session.pop('_flashes', None)
+		flash("Logged in.")
 	else:
 		if ('@icahn.mssm.edu' not in useremail) & ('@mssm.edu' not in useremail):	# not ISMMS account
 			return 'Unauthorized e-mail address. You must be a MSSM affiliate with an @icahn.mssm.edu or @mssm.edu address!'
@@ -97,6 +99,8 @@ def googleOAuthTokenVerify():				# authenticate with Google for Icahn accounts
 			database.ver_db_session.add(user)
 			database.ver_db_session.commit()
 			flask_login.login_user(user, remember=True)	# log them in in their browser
+			session.pop('_flashes', None)
+			flash("Logged in.")
 	return useremail				# return logged in email to user
 
 
