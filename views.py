@@ -440,7 +440,7 @@ def view_invoice_records(invoice_id):
 def delete_invoice(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
 	undo(invoice.checksum)
-	flash("Deleted invoice %s"%invoice.filename)
+	flash("Deleted invoice %s"%invoice.properties_dict()["uploaded_name"])
 	return redirect(url_for("view_all_invoices"))
 
 def randomword(length):
