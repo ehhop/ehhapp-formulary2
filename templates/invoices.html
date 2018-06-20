@@ -18,17 +18,19 @@
 	    <table class="table table-hover" id="activesort">
 		<thead>
 			<th> Filename </th>
-      		<th> Date added </th>
+      		<th> Added </th>
+      		<th> Date range </th>
 			<th> SHA1 Hash </th>
 			<th> Actions </th>
 		</thead>
 		<tbody>
 		{% for invoice in invoices %}
 		<tr>
-			<td> <a href="/invoices/{{invoice.id}}/download">{{invoice.properties["uploaded_name"]}}</a></td>
+			<td> <a href="/invoices/{{invoice.id}}/download">{{invoice.properties_dict()["uploaded_name"]}}</a></td>
       		<td> <script> document.write(moment("{{invoice.date_added}}").calendar()); </script> </td>
-			<td><span title="{{invoice.checksum}}"><u>{{invoice.checksum[0:6]}}</u></span></td>
-			<td><form method="post" action="/invoices/{{invoice.id}}/delete" class="inline">
+      		<td> <script> document.write(moment("{{invoice.dates[0]}}").format("M/D/YYYY"));</script> - <script> document.write(moment("{{invoice.dates[-1]}}").format("M/D/YYYY"));</script></td>
+			<td> <span title="{{invoice.checksum}}"><u>{{invoice.checksum[0:6]}}</u></span></td>
+			<td> <form method="post" action="/invoices/{{invoice.id}}/delete" class="inline">
 				  <button type="submit" class="btn btn-xs btn-danger" role="button" onclick="return confirm('Are you sure? This will delete {{invoice.records.all()|length}} transactions from the DB.')">
 				    Delete
 				  </button>
