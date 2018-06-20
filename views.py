@@ -242,8 +242,8 @@ def view_medication(pricetable_id):
 		ax2.set_title("Medication volume")
 		ax2.set_ylabel("Doses given")
 		ax2.set_xlabel("Date")
-		for tick in ax2.get_xticklabels():
-			tick.set_rotation(45)
+#		for tick in ax2.get_xticklabels():
+#			tick.set_rotation(45)
 		fig.subplots_adjust(hspace=1.5)
 		html_figure = mpld3.fig_to_html(fig)
 		return render_template("medications_view.html", 
