@@ -11,8 +11,7 @@
 
 {% block body %}
 	    <div class="page-header">
-	    	{% set filename = invoice.filename.split('/') %}
-		    <h3>Invoice {{filename[1]}} (SHA1:{{invoice.checksum[0:10]}})</h3>
+		    <h3>Invoice {{invoice.properties_dict()["uploaded_name"]}} (SHA1:{{invoice.checksum[0:10]}})</h3>
 	    </div>
 	    <div class="row">
 	    <div class="col-md-12">

@@ -18,6 +18,7 @@ import database
 from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
 import consolidateRecord
+from undo import undo
 
 import_dirname = "import/"
 
@@ -422,20 +423,18 @@ def upload_invoice():
 def view_all_invoices():
 	invoices = database.Invoice.query.all()
 	for invoice in invoices:
-		invoice.properties = invoice.properties_dict()
+		invoice.dates = sorted([i.requisition_date for i in invoice.records])
 	return render_template("invoices.html",invoices=invoices)
 
 @app.route("/invoices/<int:invoice_id>/download", methods=["GET"])
 def download_invoice(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
-	return send_from_directory("", invoice.filename, as_attachment=True)
+	return send_from_directory("", invoice.filename, as_attachment=True, attachment_filename=invoice.properties_dict()["uploaded_name"])
 
 @app.route("/invoices/<int:invoice_id>/view", methods=["GET"])
 def view_invoice_records(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
 	return render_template("view_invoice.html",invoice=invoice)
-
-from undo import undo
 
 @app.route("/invoices/<int:invoice_id>/delete",methods=["POST"])
 def delete_invoice(invoice_id):
