@@ -137,7 +137,7 @@ def view_all_medications():
 			if len(m.transactions)!=0:
 				medout.append(m)
 		medications = medout
-	for m in medications: 
+	for m in medications:
 		m.spend = round(sum([t.qty*t.price for t in m.transactions]),2)
 		m.bought = sum([t.qty for t in m.transactions if t.qty>0])
 		m.sold = sum([t.qty for t in m.transactions if t.qty<0])
@@ -220,7 +220,7 @@ def view_medication(pricetable_id):
 		rcParams["legend.shadow"] = False
 		rcParams["legend.frameon"] = False
 		rcParams["legend.borderpad"] = 0
-		
+
 		df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions if t.date.year==int(year)])
 		if len(df)==0:
 			flash("No data for that year.")
@@ -246,7 +246,7 @@ def view_medication(pricetable_id):
 #			tick.set_rotation(45)
 		fig.subplots_adjust(hspace=1.5)
 		html_figure = mpld3.fig_to_html(fig)
-		return render_template("medications_view.html", 
+		return render_template("medications_view.html",
 				medications=medications,year=year,
 		        html_figure=html_figure)
 
@@ -283,7 +283,7 @@ def view_medication_history(year=None,search_term = None):
 				med_to_chart = search_term.strip().upper()
 				meds = database.PersistentMedication.query.filter(database.PersistentMedication.name.contains(med_to_chart)).all()
 				meds = [i.to_class() for i in meds]
-			
+
 			idx = pd.date_range(year+'-01-01 00:00:00', freq='MS', periods=12)
 			price_df = pd.DataFrame(index=idx)
 			#print(idx)
@@ -292,7 +292,7 @@ def view_medication_history(year=None,search_term = None):
 				med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
 				if med.transactions != []:
 					medout.append(med)
-				df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])	
+				df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
 				if len(df)>0:
 					df.set_index("date",inplace=True)
 					prices = df[["price"]].resample('MS').mean().loc[idx,].fillna(method='ffill').fillna(method='bfill')
@@ -301,7 +301,7 @@ def view_medication_history(year=None,search_term = None):
 				meds=[]
 				html_figure=""
 				flash("No data in db for that search, please try again.")
-				return render_template("medications_view_history.html", 
+				return render_template("medications_view_history.html",
 						medications=meds,year=year,
 						html_figure=html_figure)
 			meds = medout
@@ -325,7 +325,7 @@ def view_medication_history(year=None,search_term = None):
 
 			html_figure1 = mpld3.fig_to_html(fig)
 
-			medications = meds 
+			medications = meds
 
 			plt.style.use('ggplot')
 			scale = 0.25
@@ -357,7 +357,7 @@ def view_medication_history(year=None,search_term = None):
 		html_figure1=""
 		html_figure2=""
 
-	return render_template("medications_view_history.html", 
+	return render_template("medications_view_history.html",
 			medications=meds,year=year,
 	        html_figure1=html_figure1,html_figure2=html_figure2)
 
