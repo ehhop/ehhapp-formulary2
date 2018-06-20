@@ -158,6 +158,9 @@ def piechart():
 	medications = database.PersistentMedication.query. \
 		order_by(database.PersistentMedication.name.asc()).\
 		all()
+	if len(medications)==0:
+		flash("No medication records in db.")
+		return redirect(url_for("view_all_medications"))
 	medications = [i.to_class() for i in medications]
 	if year!="0":
 		medout = []
