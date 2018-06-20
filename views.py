@@ -34,7 +34,7 @@ class Auth:
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+    return database.User.query.get(user_id)
 """ OAuth Session creation """
 
 def get_google_auth(state=None, token=None):
@@ -63,50 +63,54 @@ def login():
                            google_client_id = google_client_id)
 
 
-@app.route('/gCallback')
-def callback():
-    if current_user is not None and current_user.is_authenticated:
-        return redirect(url_for('index'))
-    if 'error' in request.args:
-        if request.args.get('error') == 'access_denied':
-            return 'You denied access.'
-        return 'Error encountered.'
-    if 'code' not in request.args and 'state' not in request.args:
-        return redirect(url_for('login'))
-    else:
-        google = get_google_auth(state=session['oauth_state'])
-        try:
-            token = google.fetch_token(
-                Auth.TOKEN_URI,
-                client_secret=Auth.CLIENT_SECRET,
-                authorization_response=request.url)
-        except HTTPError:
-            return 'HTTPError occurred.'
-        google = get_google_auth(token=token)
-        resp = google.get(Auth.USER_INFO)
-        if resp.status_code == 200:
-            user_data = resp.json()
-            email = user_data['email']
-            user = User.query.filter_by(email=email).first()
-            if user is None:
-                user = User()
-                user.email = email
-            user.name = user_data['name']
-            print(token)
-            user.tokens = json.dumps(token)
-            user.avatar = user_data['picture']
-            db.session.add(user)
-            db.session.commit()
-            login_user(user)
-            return redirect(url_for('index'))
-        return 'Could not fetch your information.'
+@app.route('/gCallback',methods=["POST"])
+def googleOAuthTokenVerify():				# authenticate with Google for Icahn accounts
+	'''from https://developers.google.com/identity/sign-in/web/backend-auth'''
+	token = request.values.get('idtoken', None)
+	try:
+		idinfo = gauthclient.verify_id_token(token, google_client_id)
+		# If multiple clients access the backend server:
+		if idinfo['aud'] not in [google_client_id]:
+			raise crypt.AppIdentityError("Unrecognized client.")
+		if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
+			raise crypt.AppIdentityError("Wrong issuer.")
+	except crypt.AppIdentityError:
+		# Invalid token
+		sys.stderr.write("Bad token from client.\n")
+		return None
+							# okay, now we're logged in. yay!
+	userid = idinfo['sub']
+	useremail = idinfo['email']
+	sys.stderr.write("Token sign in user: " + ", ".join([useremail, userid]) + "\n")
+	user = database.User.query.get(useremail)
+	if user:					# if user has been here before
+		user.authenticated=True			# log them in in DB
+		database.ver_db_session.add(user)
+		database.ver_db_session.commit()
+		flask_login.login_user(user, remember=True)	# log them in in their browser
+	else:
+		if ('@icahn.mssm.edu' not in useremail) & ('@mssm.edu' not in useremail):	# not ISMMS account
+			return 'Unauthorized e-mail address. You must be a MSSM affiliate with an @icahn.mssm.edu or @mssm.edu address!'
+		else:
+			user = database.User(email = useremail, tokens=userid)	# create new user in DB
+			user.authenticated=True		# log them in in DB
+			database.ver_db_session.add(user)
+			database.ver_db_session.commit()
+			flask_login.login_user(user, remember=True)	# log them in in their browser
+	return useremail				# return logged in email to user
 
 
-@app.route('/logout')
-@login_required
+@app.route("/logout", methods=["GET", "POST"])
+@flask_login.login_required
 def logout():
-    logout_user()
-    return redirect(url_for('index'))
+    """Logout the current user."""
+    user = flask_login.current_user
+    user.authenticated = False				# log out in db
+    database.ver_db_session.add(user)
+    database.ver_db_session.commit()
+    flask_login.logout_user()				# delete browser cookie
+    flash("Logged out.")
+    return redirect(url_for("index"))
 
 @app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
@@ -118,12 +122,8 @@ def index():
 def send_js(path):
     return send_from_directory('assets', path)
 
-@app.route("/invoices/new")
-def add_invoice():
-  #todo
-  return "#TODO"
-
 @app.route("/medications")
+@flask_login.login_required
 def view_all_medications():
 	#this is an array of type MedicationRecord objects
 	year = request.values.get("year","0")
@@ -151,6 +151,7 @@ def view_all_medications():
 
 @app.route("/spending")
 @app.route("/piechart")
+@flask_login.login_required
 def piechart():
 	#this is an array of type MedicationRecord objects
 	year = request.values.get("year","0")
@@ -197,6 +198,7 @@ def piechart():
 import seaborn as sb
 
 @app.route("/medications/<int:pricetable_id>")
+@flask_login.login_required
 def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
 		year = request.values.get("year","2017")
@@ -255,6 +257,7 @@ from matplotlib import rcParams
 import numpy as np
 
 @app.route("/history/")
+@flask_login.login_required
 def view_medication_history(year=None,search_term = None):
 	search_term = request.values.get("search_term",None)
 	year = request.values.get("year","2017")
@@ -363,10 +366,12 @@ def view_medication_history(year=None,search_term = None):
 	        html_figure1=html_figure1,html_figure2=html_figure2)
 
 @app.route("/export")
+@flask_login.login_required
 def displayDownloadButton():
 	return render_template("export.html")
 
 @app.route("/export/download", methods = ["GET", "POST"])
+@flask_login.login_required
 def downloadFile():
 	# Download latest invoice file
 	# TODO: need to implement sign-in check
@@ -395,6 +400,7 @@ def downloadFile():
 
 
 @app.route("/import", methods=["GET","POST"])
+@flask_login.login_required
 def upload_invoice():
 	if request.method == 'POST' and "invoice_file" in request.files:
 		for invoice_file_data in request.files.getlist('invoice_file'):
@@ -420,6 +426,7 @@ def upload_invoice():
 	return render_template("import.html")
 
 @app.route("/invoices/", methods=["GET"])
+@flask_login.login_required
 def view_all_invoices():
 	invoices = database.Invoice.query.all()
 	for invoice in invoices:
@@ -427,16 +434,19 @@ def view_all_invoices():
 	return render_template("invoices.html",invoices=invoices)
 
 @app.route("/invoices/<int:invoice_id>/download", methods=["GET"])
+@flask_login.login_required
 def download_invoice(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
 	return send_from_directory("", invoice.filename, as_attachment=True, attachment_filename=invoice.properties_dict()["uploaded_name"])
 
 @app.route("/invoices/<int:invoice_id>/view", methods=["GET"])
+@flask_login.login_required
 def view_invoice_records(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
 	return render_template("view_invoice.html",invoice=invoice)
 
 @app.route("/invoices/<int:invoice_id>/delete",methods=["POST"])
+@flask_login.login_required
 def delete_invoice(invoice_id):
 	invoice = database.Invoice.query.get_or_404(invoice_id)
 	undo(invoice.checksum)
