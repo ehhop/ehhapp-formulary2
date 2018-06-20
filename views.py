@@ -128,21 +128,10 @@ def index():
 
 @app.route('/assets/<path:path>')
 def send_js(path):
-<<<<<<< HEAD
 	return send_from_directory('assets', path)
-
-@app.route("/invoices/new")
-def add_invoice():
-  #todo
-  return "#TODO"
-
-@app.route("/medications")
-=======
-    return send_from_directory('assets', path)
 
 @app.route("/medications")
 @flask_login.login_required
->>>>>>> d18e75e602fb0e0443da8dfc3116d9db285e25cf
 def view_all_medications():
 	#this is an array of type MedicationRecord objects
 	year = request.values.get("year","0")
