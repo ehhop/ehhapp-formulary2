@@ -1,10 +1,11 @@
 {% extends 'layout.html' %}
 {% block navbar%}
 <li class="inactive"><a href="/medications">Medications</a></li>
+<li class="active"><a href="/history">Comparisons</a></li>
 <li class="inactive"><a href="/spending">Spending</a></li>
-                        <li class="active"><a href="/history">History</a></li>
-                        <li class="inactive"><a href="/import">Import</a></li>
-                         <li class="inactive"><a href="/export">Export</a></li>
+<li class="inactive"><a href="/invoices">History</a></li>
+<li class="inactive"><a href="/import">Import</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
 {% block title %}Medications | ehhapp-formulary2{% endblock %}
 {% macro increment(dct, key, inc=1)%}

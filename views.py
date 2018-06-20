@@ -398,9 +398,17 @@ def upload_invoice():
 	if request.method == 'POST' and "invoice_file" in request.files:
 		for invoice_file_data in request.files.getlist('invoice_file'):
 			if invoice_file_data:
-				invoice_filename = "invoice-upload-"+str(int(time.time()))+".xlsx"
+				invoice_filename_ext = invoice_file_data.filename.split(".")[-1]
+				if invoice_filename_ext == "xls":
+					invoice_filename = "invoice-upload-"+str(int(time.time()))+".xls"
+				elif invoice_filename_ext == "xlsx":
+					invoice_filename = "invoice-upload-"+str(int(time.time()))+".xlsx"
+				else:
+					print(invoice_filename_ext)
+					flash("Error: %s is not an Excel .xls or .xlsx file"%invoice_file_data.filename)
+					continue
 				invoice_file_data.save(import_dirname+invoice_filename)
-				msg,status = consolidateRecord.main(import_dirname+invoice_filename)
+				msg,status = consolidateRecord.main(import_dirname+invoice_filename,uploaded_name = invoice_file_data.filename)
 				if status:
 					flash('Invoice added to db.')
 				else:
@@ -409,6 +417,32 @@ def upload_invoice():
 				flash('Error: No selected file.')
 		return redirect(url_for("upload_invoice"))
 	return render_template("import.html")
+
+@app.route("/invoices/", methods=["GET"])
+def view_all_invoices():
+	invoices = database.Invoice.query.all()
+	for invoice in invoices:
+		invoice.properties = invoice.properties_dict()
+	return render_template("invoices.html",invoices=invoices)
+
+@app.route("/invoices/<int:invoice_id>/download", methods=["GET"])
+def download_invoice(invoice_id):
+	invoice = database.Invoice.query.get_or_404(invoice_id)
+	return send_from_directory("", invoice.filename, as_attachment=True)
+
+@app.route("/invoices/<int:invoice_id>/view", methods=["GET"])
+def view_invoice_records(invoice_id):
+	invoice = database.Invoice.query.get_or_404(invoice_id)
+	return render_template("view_invoice.html",invoice=invoice)
+
+from undo import undo
+
+@app.route("/invoices/<int:invoice_id>/delete",methods=["POST"])
+def delete_invoice(invoice_id):
+	invoice = database.Invoice.query.get_or_404(invoice_id)
+	undo(invoice.checksum)
+	flash("Deleted invoice %s"%invoice.filename)
+	return redirect(url_for("view_all_invoices"))
 
 def randomword(length):
         '''generate a random string of whatever length, good for filenames'''

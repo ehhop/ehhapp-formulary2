@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block navbar%}
+<li class="inactive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">Comparisons</a></li>
+<li class="inactive"><a href="/spending">Spending</a></li>
+<li class="active"><a href="/invoices">History</a></li>
+<li class="inactive"><a href="/import">Import</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
+{%endblock%}
+{% block title %}Invoices | ehhapp-formulary2{% endblock %}
+
+{% block body %}
+	    <div class="page-header">
+	    	{% set filename = invoice.filename.split('/') %}
+		    <h3>Invoice {{filename[1]}} (SHA1:{{invoice.checksum[0:10]}})</h3>
+	    </div>
+	    <div class="row">
+	    <div class="col-md-12">
+	    <table class="table table-hover" id="activesort">
+		<thead>
+			<th> Item Description </th>
+      		<th> Requisition Date </th>
+			<th> Quantity </th>
+			<th> Price </th>
+		</thead>
+		<tbody>
+		{% for record in invoice.records %}
+		<tr>
+			<td>{{record.item_description}}</td>
+      		<td> <script> document.write(moment("{{record.requisition_date}}").calendar()); </script> </td>
+			<td>{{record.issue_qty|int}}</td>
+			<td>{{record.extended_price|float|round(5)}}</td>
+		</tr>
+		{% endfor %}
+		</tbody>
+	    </table>
+	    {% if invoice.records.all()|length == 0 %}
+	    <div class="alert alert-error">No valid records in invoice.</div>
+	    {% endif %}
+	    </div>
+	    </div>
+
+{% endblock %}
