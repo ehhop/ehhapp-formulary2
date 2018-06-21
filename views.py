@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask.ext.login as flask_login
 from flask.ext.login import LoginManager, login_required, login_user, \
-    logout_user, current_user, UserMixin
+	logout_user, current_user, UserMixin
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import HTTPError
@@ -19,93 +19,97 @@ from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
 import consolidateRecord
 
+import plotly
+import plotly.graph_objs as go
+import numpy as np
+
 import_dirname = "import/"
 
 class Auth:
-    """Google Project Credentials"""
-    CLIENT_ID = google_client_id
-    CLIENT_SECRET = google_client_secret
-    REDIRECT_URI = redirect_uri
-    AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
-    TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
-    USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
-    SCOPE = ['profile', 'email']
+	"""Google Project Credentials"""
+	CLIENT_ID = google_client_id
+	CLIENT_SECRET = google_client_secret
+	REDIRECT_URI = redirect_uri
+	AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+	TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+	USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
+	SCOPE = ['profile', 'email']
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(int(user_id))
+	return User.query.get(int(user_id))
 """ OAuth Session creation """
 
 def get_google_auth(state=None, token=None):
-    if token:
-        return OAuth2Session(Auth.CLIENT_ID, token=token)
-    if state:
-        return OAuth2Session(
-            Auth.CLIENT_ID,
-            state=state,
-            redirect_uri=Auth.REDIRECT_URI)
-    oauth = OAuth2Session(
-        Auth.CLIENT_ID,
-        redirect_uri=Auth.REDIRECT_URI,
-        scope=Auth.SCOPE)
-    return oauth
+	if token:
+		return OAuth2Session(Auth.CLIENT_ID, token=token)
+	if state:
+		return OAuth2Session(
+			Auth.CLIENT_ID,
+			state=state,
+			redirect_uri=Auth.REDIRECT_URI)
+	oauth = OAuth2Session(
+		Auth.CLIENT_ID,
+		redirect_uri=Auth.REDIRECT_URI,
+		scope=Auth.SCOPE)
+	return oauth
 
 @app.route('/login')
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    google = get_google_auth()
-    auth_url, state = google.authorization_url(
-        Auth.AUTH_URI, access_type='offline')
-    session['oauth_state'] = state
-    return render_template('login.html', auth_url=auth_url,
-                           google_client_id = google_client_id)
+	if current_user.is_authenticated:
+		return redirect(url_for('index'))
+	google = get_google_auth()
+	auth_url, state = google.authorization_url(
+		Auth.AUTH_URI, access_type='offline')
+	session['oauth_state'] = state
+	return render_template('login.html', auth_url=auth_url,
+						   google_client_id = google_client_id)
 
 
 @app.route('/gCallback')
 def callback():
-    if current_user is not None and current_user.is_authenticated:
-        return redirect(url_for('index'))
-    if 'error' in request.args:
-        if request.args.get('error') == 'access_denied':
-            return 'You denied access.'
-        return 'Error encountered.'
-    if 'code' not in request.args and 'state' not in request.args:
-        return redirect(url_for('login'))
-    else:
-        google = get_google_auth(state=session['oauth_state'])
-        try:
-            token = google.fetch_token(
-                Auth.TOKEN_URI,
-                client_secret=Auth.CLIENT_SECRET,
-                authorization_response=request.url)
-        except HTTPError:
-            return 'HTTPError occurred.'
-        google = get_google_auth(token=token)
-        resp = google.get(Auth.USER_INFO)
-        if resp.status_code == 200:
-            user_data = resp.json()
-            email = user_data['email']
-            user = User.query.filter_by(email=email).first()
-            if user is None:
-                user = User()
-                user.email = email
-            user.name = user_data['name']
-            print(token)
-            user.tokens = json.dumps(token)
-            user.avatar = user_data['picture']
-            db.session.add(user)
-            db.session.commit()
-            login_user(user)
-            return redirect(url_for('index'))
-        return 'Could not fetch your information.'
+	if current_user is not None and current_user.is_authenticated:
+		return redirect(url_for('index'))
+	if 'error' in request.args:
+		if request.args.get('error') == 'access_denied':
+			return 'You denied access.'
+		return 'Error encountered.'
+	if 'code' not in request.args and 'state' not in request.args:
+		return redirect(url_for('login'))
+	else:
+		google = get_google_auth(state=session['oauth_state'])
+		try:
+			token = google.fetch_token(
+				Auth.TOKEN_URI,
+				client_secret=Auth.CLIENT_SECRET,
+				authorization_response=request.url)
+		except HTTPError:
+			return 'HTTPError occurred.'
+		google = get_google_auth(token=token)
+		resp = google.get(Auth.USER_INFO)
+		if resp.status_code == 200:
+			user_data = resp.json()
+			email = user_data['email']
+			user = User.query.filter_by(email=email).first()
+			if user is None:
+				user = User()
+				user.email = email
+			user.name = user_data['name']
+			print(token)
+			user.tokens = json.dumps(token)
+			user.avatar = user_data['picture']
+			db.session.add(user)
+			db.session.commit()
+			login_user(user)
+			return redirect(url_for('index'))
+		return 'Could not fetch your information.'
 
 
 @app.route('/logout')
 @login_required
 def logout():
-    logout_user()
-    return redirect(url_for('index'))
+	logout_user()
+	return redirect(url_for('index'))
 
 @app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
@@ -115,7 +119,7 @@ def index():
 
 @app.route('/assets/<path:path>')
 def send_js(path):
-    return send_from_directory('assets', path)
+	return send_from_directory('assets', path)
 
 @app.route("/invoices/new")
 def add_invoice():
@@ -176,11 +180,11 @@ def piechart():
 	rcParams["legend.borderpad"] = 0
 
 	def my_autopct(pct):
-	    return ('%.2f%%' % pct) if pct > 1.5 else ''
+		return ('%.2f%%' % pct) if pct > 1.5 else ''
 
 	med_df = pd.DataFrame([{"name":m.name,
-	                        "category":m.category.split(" - ")[0].split(",")[0].strip() if m.category!=None else "Other",
-	                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+							"category":m.category.split(" - ")[0].split(",")[0].strip() if m.category!=None else "Other",
+							"price_spent":sum([t.price for t in m.transactions])} for m in medications])
 	data = med_df.pivot_table(index="category",values="price_spent").\
 	sort_values("price_spent",ascending=False)["price_spent"]
 
@@ -197,7 +201,6 @@ import seaborn as sb
 
 @app.route("/medications/<int:pricetable_id>")
 def view_medication(pricetable_id):
-	#this is an array of type MedicationRecord objects
 		year = request.values.get("year","2017")
 #		if year=="0":
 #			year="2017"
@@ -206,7 +209,7 @@ def view_medication(pricetable_id):
 			first_or_404()
 		med = medication.to_class()
 		if year=="0":
-		    year = str(max([t.date.year for t in med.transactions]))
+			year = str(max([t.date.year for t in med.transactions]))
 		med.transactions = [t for t in med.transactions if t.date.year==int(year)]
 		medications = [med]
 		fig, (ax1,ax2) = plt.subplots(2)
@@ -222,6 +225,7 @@ def view_medication(pricetable_id):
 		rcParams["legend.borderpad"] = 0
 
 		df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions if t.date.year==int(year)])
+		print(df, file=sys.stderr)
 		if len(df)==0:
 			flash("No data for that year.")
 			return redirect(url_for("view_all_medications"))
@@ -230,6 +234,7 @@ def view_medication(pricetable_id):
 			prices = df[["price"]].resample('W').mean().loc[idx,].fillna(method='ffill').fillna(method='bfill')*100
 		else:
 			prices = df[["price"]].resample('W').mean().loc[idx,].fillna(method='ffill').fillna(method='bfill')
+
 		prices.plot(ax=ax1)
 		ax1.set_title("Price history")
 		if med.transactions[0].price < 1:
@@ -246,9 +251,23 @@ def view_medication(pricetable_id):
 			tick.set_rotation(45)
 		fig.subplots_adjust(hspace=1.5)
 		html_figure = mpld3.fig_to_html(fig)
+
+		# ------------------- Plotly Goes here -----------------
+
+		N = 1000
+		random_x = np.random.randn(N)
+		random_y = np.random.randn(N)
+
+		trace = go.Scatter(x = df.index, y = df['price'])
+		data = [trace]
+		html_figure_plotly = \
+			plotly.offline.plot(data,filename='test.html', output_type='div')
+
+
+
 		return render_template("medications_view.html",
 				medications=medications,year=year,
-		        html_figure=html_figure)
+				html_figure=html_figure_plotly)
 
 from matplotlib import rcParams
 import numpy as np
@@ -338,11 +357,11 @@ def view_medication_history(year=None,search_term = None):
 			rcParams["legend.borderpad"] = 0
 
 			def my_autopct(pct):
-			    return ('%.2f%%' % pct) if pct > 1.5 else ''
+				return ('%.2f%%' % pct) if pct > 1.5 else ''
 
 			med_df = pd.DataFrame([{"name":m.name,
-			                        "category":m.name,
-			                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+									"category":m.name,
+									"price_spent":sum([t.price for t in m.transactions])} for m in medications])
 			data = med_df.pivot_table(index="category",values="price_spent").\
 			sort_values("price_spent",ascending=False)["price_spent"]
 
@@ -359,7 +378,7 @@ def view_medication_history(year=None,search_term = None):
 
 	return render_template("medications_view_history.html",
 			medications=meds,year=year,
-	        html_figure1=html_figure1,html_figure2=html_figure2)
+			html_figure1=html_figure1,html_figure2=html_figure2)
 
 @app.route("/export")
 def displayDownloadButton():
@@ -411,5 +430,5 @@ def upload_invoice():
 	return render_template("import.html")
 
 def randomword(length):
-        '''generate a random string of whatever length, good for filenames'''
-        return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+		'''generate a random string of whatever length, good for filenames'''
+		return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
