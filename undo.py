@@ -12,9 +12,6 @@ def undo(invoiceChecksum):
     #check if we  have anything
     query = database.Invoice.query.filter(database.Invoice.checksum.is_(invoiceChecksum)).all()
     #quit if there is no query
-    if not query:
-        print "no result!"
-        return
     #get the proper invoiceId from invocies to delete the invoice record
     invoiceId =  query[0].id
 

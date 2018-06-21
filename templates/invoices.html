@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+{% block navbar%}
+<li class="inactive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">Comparisons</a></li>
+<li class="inactive"><a href="/spending">Spending</a></li>
+<li class="active"><a href="/invoices">History</a></li>
+<li class="inactive"><a href="/import">Import</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
+{%endblock%}
+{% block title %}Invoices | ehhapp-formulary2{% endblock %}
+
+{% block body %}
+	    <div class="page-header">
+		    <h1>Invoices</h1>
+	    </div>
+	    <div class="row">
+	    <div class="col-md-12">
+	    <table class="table table-hover" id="activesort">
+		<thead>
+			<th> Filename </th>
+      		<th> Added </th>
+      		<th> Date range </th>
+			<th> SHA1 Hash </th>
+			<th> Actions </th>
+		</thead>
+		<tbody>
+		{% for invoice in invoices %}
+		<tr>
+			<td> <a href="/invoices/{{invoice.id}}/download">{{invoice.properties_dict()["uploaded_name"]}}</a></td>
+      		<td> <script> document.write(moment("{{invoice.date_added}}").calendar()); </script> </td>
+      		<td> <script> document.write(moment("{{invoice.dates[0]}}").format("M/D/YYYY"));</script> - <script> document.write(moment("{{invoice.dates[-1]}}").format("M/D/YYYY"));</script></td>
+			<td> <span title="{{invoice.checksum}}"><u>{{invoice.checksum[0:6]}}</u></span></td>
+			<td> <form method="post" action="/invoices/{{invoice.id}}/delete" class="inline">
+				  <button type="submit" class="btn btn-xs btn-danger" role="button" onclick="return confirm('Are you sure? This will delete {{invoice.records.all()|length}} transactions from the DB.')">
+				    Delete
+				  </button>
+				</form></td>
+		</tr>
+		{% endfor %}
+		</tbody>
+	    </table>
+	    {% if invoices|length == 0 %}
+	    <div class="alert alert-error">No invoices uploaded to DB.</div>
+	    {% endif %}
+	    </div>
+	    </div>
+
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'layout.html' %}
+{% block navbar%}
+<li class="inactive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">Comparisons</a></li>
+<li class="active"><a href="/spending">Spending</a></li>
+<li class="inactive"><a href="/invoices">History</a></li>
+<li class="inactive"><a href="/import">Import</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
+{%endblock%}
+{% block title %}Medications | ehhapp-formulary2{% endblock %}
+{% macro increment(dct, key, inc=1)%}
+    {% if dct.update({key: dct[key] + inc}) %} {% endif %}
+{% endmacro %}
+{% block body %}
+	    <div class="page-header">
+		    <h1>Spending Pie Chart</h1>
+	    </div>
+	    <form method="GET" action="/piechart" class="form-inline">
+	    	<label for="year">Year to analyze</label>
+	    	<select name="year" class="form-control" onchange="this.form.submit()">
+	    	 {% for y in range(2014,2019) %}
+	    	 {% if y==year|int %}
+			  <option value="{{y}}" selected="selected">{{y}}</option>
+			 {% else %}
+			   <option value="{{y}}">{{y}}</option>
+			 {% endif %}
+			 {% endfor %}
+			 {% if year=="0" %}
+			 	<option value="0" selected="selected">All</option>
+			 {% else %}
+			 	<option value="0">All</option>
+			 {% endif %}
+			</select>
+	    </form>
+	    <div class="row">
+	    <div class="col-md-2"></div>
+    	<div class="col-md-8">
+    	{{html_figure|safe}}
+    	</div>
+    	<div class="col-md-2"></div>
+	    </div>
+
+{% endblock %}

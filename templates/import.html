@@ -1,10 +1,11 @@
 {% extends 'layout.html' %}
 {% block navbar%}
-<li class="inctive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">Comparisons</a></li>
 <li class="inactive"><a href="/spending">Spending</a></li>
-<li class="inactive"><a href="/history">History</a></li>
+<li class="inactive"><a href="/invoices">History</a></li>
 <li class="active"><a href="/import">Import</a></li>
- <li class="inactive"><a href="/export">Export</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
 {%endblock%}
 {% block title %}Import | ehhapp-formulary2{% endblock %}
 {% block body %}
@@ -13,7 +14,7 @@
 	</div>
 	<div class="row">
 	<div class="col-lg-6">
-	<form action="" method="POST" enctype="multipart/form-data">       
+	<form action="" method="POST" enctype="multipart/form-data">
 		<fieldset class="form-group">
 			<div class="clearfix">
 								   <label for="invoice_file">Select invoice files (.xls or .xlsx) or drag and drop here </label>

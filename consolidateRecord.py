@@ -13,7 +13,7 @@ import invoicerecord
 from invoicerecord import MedicationRecord
 import database
 import pandas as pd
-import datetime
+import datetime, json
 import drugmatch
 import time
 
@@ -67,7 +67,7 @@ def hash_file(filename):
             buf = afile.read(BLOCKSIZE)
     return hasher.hexdigest()
 
-def saveinvoicetodb(file):
+def saveinvoicetodb(file, uploaded_name=""):
     '''takes a invoice file, checks the hash, adds invoice records, and saves to persistentmedications'''
     ds = pd.read_excel(file,usecols=range(0,17))
     ds = ds.dropna(axis=0,thresh=len(ds.columns)-3)
@@ -78,6 +78,8 @@ def saveinvoicetodb(file):
     if is_imported: #if so, reject invoice and return here
         return False,hashMe
     # if not, populate invoice object
+    properties = {"uploaded_name":uploaded_name}
+    invoice_db.properties = json.dumps(properties)
     invoice_db.filename=file
     invoice_db.date_added = datetime.datetime.now()
     for ix,row in ds.iterrows(): #populate invoicerecords with data from invoice's rows
@@ -127,7 +129,7 @@ def saveinvoicetodb(file):
         #print value.transactions
         persistent_med = database.save_persistent_record(value, commit=False)
         print(persistent_med.cui)
-        if persistent_med.cui == None: 
+        if persistent_med.cui == None:
             persistentmeds.append(persistent_med)
             continue
         if len(persistent_med.cui)==0:
@@ -160,9 +162,9 @@ def saveinvoicetodb(file):
     database.ver_db_session.commit() #cross your fingers!
     return True, hashMe
 
-def main(filename):
+def main(filename, uploaded_name=""):
     try:
-        result,hashMe = saveinvoicetodb(filename)
+        result,hashMe = saveinvoicetodb(filename,uploaded_name)
         if result:
             return "Success",True
         else:
