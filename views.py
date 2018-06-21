@@ -215,6 +215,8 @@ def view_medication(pricetable_id):
 		year = request.values.get("year","2017")
 #		if year=="0":
 #			year="2017"
+		if "-" in year:
+		    year="0"
 		medication = database.PersistentMedication.query. \
 			filter_by(pricetable_id=pricetable_id).\
 			first_or_404()
