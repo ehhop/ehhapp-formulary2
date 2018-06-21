@@ -286,8 +286,8 @@ import numpy as np
 def view_medication_history(year=None,search_term = None):
 	search_term = request.values.get("search_term",None)
 	year = request.values.get("year","2017")
-	if year=="0":
-	    year="2017"
+#	if year=="0":
+#	    year="2017"
 	plt.style.use('ggplot')
 	scale = .4
 	rcParams['figure.figsize'] = (20*scale,8*scale)
@@ -324,13 +324,19 @@ def view_medication_history(year=None,search_term = None):
 			if len(meds)==0:
 			    flash("No matching history found.")
 			    return redirect(url_for("view_medication_history"))
-
-			idx = pd.date_range(year+'-01-01 00:00:00', freq='MS', periods=12)
+			dates = set([t.date.year for i in meds for t in i.transactions])
+			first_year = min(dates)
+			last_year = max(dates)
+			periods = 12*(last_year-first_year+1)
+			idx = pd.date_range(str(first_year)+'-01-01 00:00:00', freq='MS', periods=periods)
 			price_df = pd.DataFrame(index=idx)
 			#print(idx)
 			medout = []
 			for med in meds:
-				med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
+				if year=="0":
+				    med.transactions = [t for t in med.transactions if t.qty>0]
+				else:
+				    med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
 				if med.transactions != []:
 					medout.append(med)
 				df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
@@ -355,12 +361,12 @@ def view_medication_history(year=None,search_term = None):
 				for row in range(1,len(prices.index)):
 					prices.iloc[row][col] = ((prices.iloc[row][col] - prices.iloc[0][col]) / prices.iloc[0][col]) * 100
 				prices.iloc[0][col] = 0
-			prices.plot(marker="o",title="Percent change from Jan "+year,colors=colors,ax=ax1)
+			prices.plot(marker="o",title="Percent change from Jan "+str(first_year),colors=colors,ax=ax1)
 			ax1.set_ylabel("% change")
 			ax1.legend(fontsize = 10,shadow=False,framealpha=0,loc="best")
 
 			price_df_100 = price_df.copy(deep=True)
-			price_df_100.plot(marker="o",title="Monthly price for "+year,colors=colors,ax=ax2)
+			price_df_100.plot(marker="o",title="Monthly price",colors=colors,ax=ax2)
 			ax2.set_ylabel("Price per dose ($)")
 			ax2.legend_.remove()
 
@@ -397,7 +403,8 @@ def view_medication_history(year=None,search_term = None):
 		meds=[]
 		html_figure1=""
 		html_figure2=""
-
+	if year=="0":
+	    year = str(first_year)+"-"+str(last_year)
 	return render_template("medications_view_history.html",
 			medications=meds,year=year,
 	        html_figure1=html_figure1,html_figure2=html_figure2)
