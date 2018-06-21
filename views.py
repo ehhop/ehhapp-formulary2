@@ -287,7 +287,7 @@ def view_medication_history(year=None,search_term = None):
 	search_term = request.values.get("search_term",None)
 	year = request.values.get("year","2017")
 	if year=="0":
-	    year=="2017"
+	    year="2017"
 	plt.style.use('ggplot')
 	scale = .4
 	rcParams['figure.figsize'] = (20*scale,8*scale)
