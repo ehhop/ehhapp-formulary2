@@ -30,11 +30,13 @@
       		<td> <script> document.write(moment("{{invoice.date_added}}").calendar()); </script> </td>
       		<td> <script> document.write(moment("{{invoice.dates[0]}}").format("M/D/YYYY"));</script> - <script> document.write(moment("{{invoice.dates[-1]}}").format("M/D/YYYY"));</script></td>
 			<td> <span title="{{invoice.checksum}}"><u>{{invoice.checksum[0:6]}}</u></span></td>
-			<td> <form method="post" action="/invoices/{{invoice.id}}/delete" class="inline">
+			<td> <a href="/invoices/{{invoice.id}}/view" class="btn btn-xs btn-primary" role="button" >View</a>
+				<form method="post" action="/invoices/{{invoice.id}}/delete" class="inline" style="display:inline">
 				  <button type="submit" class="btn btn-xs btn-danger" role="button" onclick="return confirm('Are you sure? This will delete {{invoice.records.all()|length}} transactions from the DB.')">
 				    Delete
 				  </button>
-				</form></td>
+				</form>
+			</td>
 		</tr>
 		{% endfor %}
 		</tbody>

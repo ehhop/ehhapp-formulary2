@@ -37,7 +37,7 @@
 	    <table class="table table-hover" id="activesort">
 		<thead>
 			<th> Name </th>
-      <th> Common Name </th>
+		        <th> Common Name </th>
 			<th> Category </th>
 			<th> Start Price </th>
 			<th> End Price </th>
@@ -51,7 +51,7 @@
 		{% for med in medications %}
 		<tr>
 			<td> <a href="/medications/{{med.id}}?year={{year}}">{{med.name}}</a></td>
-      <td> {{med.common_name}} </td>
+                        <td> <a href="/history/?search_term={{med.common_name}}&year={{year}}">{{med.common_name}}</a></td>
 			<td> {{med.category}} </td>
 			<td> ${{med.start_price}}</td>
 			<td> ${{med.end_price}}</td>

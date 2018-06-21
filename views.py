@@ -308,10 +308,20 @@ def view_medication_history(year=None,search_term = None):
 					med_result = database.PersistentMedication.query.filter(database.PersistentMedication.name.contains(m)).all()
 					med_result = [i.to_class() for i in med_result]
 					meds.extend(med_result)
+					med_result = database.PersistentMedication.query.filter(database.PersistentMedication.common_name.contains(m)).all()
+					med_result = [i.to_class() for i in med_result]
+					meds.extend(med_result)
 			else:
 				med_to_chart = search_term.strip().upper()
 				meds = database.PersistentMedication.query.filter(database.PersistentMedication.name.contains(med_to_chart)).all()
 				meds = [i.to_class() for i in meds]
+				med_result = database.PersistentMedication.query.filter(database.PersistentMedication.common_name.contains(med_to_chart)).all()
+				med_result = [i.to_class() for i in med_result]
+				meds.extend(med_result)
+			meds = list(set(meds)) #remove dups
+			if len(meds)==0:
+			    flash("No matching history found.")
+			    return redirect(url_for("view_medication_history"))
 
 			idx = pd.date_range(year+'-01-01 00:00:00', freq='MS', periods=12)
 			price_df = pd.DataFrame(index=idx)
