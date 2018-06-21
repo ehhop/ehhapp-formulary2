@@ -355,7 +355,7 @@ def view_medication_history(year=None,search_term = None):
 			prices = price_df.copy(deep=True)
 
 			fig, (ax1,ax2) = plt.subplots(1,2)
-			colors = plt.cm.Paired(np.linspace(0, 1, len(price_df)))
+			colors = plt.cm.Paired(np.linspace(0, 1, len(price_df.columns)))
 
 			for col in range(0,len(prices.columns)):
 				for row in range(1,len(prices.index)):
