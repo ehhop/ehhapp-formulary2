@@ -324,11 +324,18 @@ def view_medication_history(year=None,search_term = None):
 			if len(meds)==0:
 			    flash("No matching history found.")
 			    return redirect(url_for("view_medication_history"))
-			dates = set([t.date.year for i in meds for t in i.transactions])
-			first_year = min(dates)
-			last_year = max(dates)
-			periods = 12*(last_year-first_year+1)
-			idx = pd.date_range(str(first_year)+'-01-01 00:00:00', freq='MS', periods=periods)
+			if year=="0":
+			    dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions if t.qty>0])
+			else:
+			    for med in meds:
+				    med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
+			    dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions])
+			first_year = min(dates).split("-")[0]
+			last_year = max(dates).split("-")[0]
+			first_month = "01"
+			last_month = max(dates).split("-")[1]
+			periods = (int(last_month)-int(first_month))+(int(last_year)-int(first_year))*12+1
+			idx = pd.date_range(str(first_year)+'-'+str(first_month)+'-01 00:00:00', freq='MS', periods=periods)
 			price_df = pd.DataFrame(index=idx)
 			#print(idx)
 			medout = []
