@@ -1,0 +1,33 @@
+{% extends 'layout.html' %}
+{% block navbar%}
+<li class="active"><a href="/medications">Medications</a></li>
+<li class="inactive"><a href="/history">Comparisons</a></li>
+<li class="inactive"><a href="/spending">Spending</a></li>
+<li class="inactive"><a href="/invoices">History</a></li>
+<li class="inactive"><a href="/import">Import</a></li>
+<li class="inactive"><a href="/export">Export</a></li>
+{%endblock%}
+{% block title %}Guide | ehhapp-formulary2{% endblock %}
+{% block body %}
+	    <div class="page-header">
+		    <h1>Medications</h1>
+	    </div>
+	    
+		{% for groups in medications|groupby("category") %}
+		<h3>{{groups.grouper}}</h3>
+			{% for meds in groups.list|groupby("common_name") %}
+				<h4>{{meds.grouper}}</h4>
+	        	{% for med in meds.list %}
+					${{'%0.2f'| format(med.end_price|float)}} ({{med.dosage}}) <a href="/medications/{{med.id}}/edit" 
+					class="btn btn-xs btn-primary" role="button">Edit</a>
+				{% endfor %}
+				<hr>
+			{% endfor %}
+		{% endfor %}
+	    {% if medications|length == 0 %}
+	    <div class="alert alert-error">No medication records in DB.</div>
+	    {% endif %}
+	    </div>
+	    </div>
+
+{% endblock %}

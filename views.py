@@ -15,6 +15,7 @@ from oauth2client import crypt
 
 from config import *
 import database
+from forms import *
 from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
 import consolidateRecord
@@ -156,6 +157,44 @@ def view_all_medications():
 		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
 
 	return render_template("medications.html", year=year,medications=medications)
+
+@app.route("/medications/guide")
+@flask_login.login_required
+def view_prescribing_guide():
+	medications = database.PersistentMedication.query. \
+		filter_by(prescribable=True).\
+		all()
+	medications = [i.to_class() for i in medications]
+	for m in medications:
+		m.spend = round(sum([t.qty*t.price for t in m.transactions]),2)
+		m.bought = sum([t.qty for t in m.transactions if t.qty>0])
+		m.sold = sum([t.qty for t in m.transactions if t.qty<0])
+		m.scripts = len(m.transactions)
+		m.end_price = round(m.transactions[-1].price,2)
+		m.start_price = round(m.transactions[0].price,2)
+		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
+	return render_template("medications_guide.html",medications=medications)
+
+@app.route("/medications/<int:pricetable_id>/edit", 
+           methods=["GET", "POST"])
+@flask_login.login_required
+def edit_medication(pricetable_id):
+	medication = database.PersistentMedication.query. \
+		filter_by(pricetable_id=pricetable_id).\
+		first_or_404()
+	form = PersistentMedicationForm(obj=medication,
+	                                category_name=medication.category.name)
+	if request.method == 'POST' and form.validate():
+		form.populate_obj(medication)
+		medication.category,_ = database.get_or_create(database.Category,
+		                                             name=form.category_name.data)
+		database.ver_db_session.commit()
+		return redirect(url_for("view_medication", 
+	                       pricetable_id=medication.pricetable_id))
+	if request.method=='POST':
+		flash(form.errors)
+	return render_template("medications_edit.html", 
+	                       med=medication,form=form)
 
 @app.route("/spending")
 @app.route("/piechart")
