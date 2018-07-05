@@ -252,7 +252,7 @@ import seaborn as sb
 @flask_login.login_required
 def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
-		year = request.values.get("year","2017")
+		year = request.values.get("year","0")
 		if "-" in year:
 		    year="0"
 		medication = database.PersistentMedication.query. \
@@ -260,47 +260,16 @@ def view_medication(pricetable_id):
 			first_or_404()
 		med = medication.to_class()
 		if year=="0":
-		    year = str(max([t.date.year for t in med.transactions]))
-		med.transactions = [t for t in med.transactions if t.date.year==int(year)]
-		medications = [med]
-		fig, (ax1,ax2) = plt.subplots(2)
-		idx = pd.date_range(year+'-01-01 00:00:00', freq='W', periods=52)
-		plt.style.use('ggplot')
-		scale = .4
-		rcParams['figure.figsize'] = (20*scale,8*scale)
-		rcParams['figure.dpi'] = 150
-		rcParams["legend.labelspacing"]=0
-		rcParams["legend.columnspacing"] = 0
-		rcParams["legend.shadow"] = False
-		rcParams["legend.frameon"] = False
-		rcParams["legend.borderpad"] = 0
-
-		df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions if t.date.year==int(year)])
-		if len(df)==0:
-			flash("No data for that year.")
-			return redirect(url_for("view_all_medications"))
+			med.transactions = [t for t in med.transactions]
+			medications = [med]
+			df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
+			years = set([t.date.year for t in med.transactions])
+			year = str(min(years))+"-"+str(max(years))
+		else:
+			med.transactions = [t for t in med.transactions if t.date.year==int(year)]
+			medications = [med]
+			df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
 		df.set_index("date",inplace=True)
-		if med.transactions[0].price < 1:
-			prices = df[["price"]].resample('W').mean().loc[idx,].fillna(method='ffill').fillna(method='bfill')*100
-		else:
-			prices = df[["price"]].resample('W').mean().loc[idx,].fillna(method='ffill').fillna(method='bfill')
-		prices.plot(ax=ax1)
-		ax1.set_title("Price history")
-		if med.transactions[0].price < 1:
-			ax1.set_ylabel("Price per 100 ($)")
-		else:
-			ax1.set_ylabel("Price ($)")
-		ax1.set_xlabel("Date")
-		volume = df[["qty"]].resample('W').sum().loc[idx,].fillna(0)
-		volume.plot(kind="bar",ax=ax2)
-		ax2.set_title("Medication volume")
-		ax2.set_ylabel("Doses given")
-		ax2.set_xlabel("Date")
-		for tick in ax2.get_xticklabels():
-			tick.set_rotation(45)
-		fig.subplots_adjust(hspace=1.5)
-		html_figure = mpld3.fig_to_html(fig)
-
 		# ------------------- Plotly Goes here -----------------
 
 		N = 1000
@@ -311,8 +280,6 @@ def view_medication(pricetable_id):
 		data = [trace]
 		html_figure_plotly = \
 			plotly.offline.plot(data,filename='test.html', output_type='div')
-
-
 
 		return render_template("medications_view.html",
 				medications=medications,year=year,
