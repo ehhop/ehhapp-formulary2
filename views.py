@@ -12,6 +12,7 @@ from requests_oauthlib import OAuth2Session
 from requests.exceptions import HTTPError
 from oauth2client import client as gauthclient
 from oauth2client import crypt
+import json
 
 from config import *
 import database
@@ -190,7 +191,7 @@ def edit_medication(pricetable_id):
 		                                             name=form.category_name.data)
 		database.ver_db_session.commit()
 		return redirect(url_for("view_medication", 
-	                       pricetable_id=medication.pricetable_id))
+	                       pricetable_id=medication.pricetable_id, year="0"))
 	if request.method=='POST':
 		flash(form.errors)
 	return render_template("medications_edit.html", 
@@ -252,8 +253,6 @@ import seaborn as sb
 def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
 		year = request.values.get("year","2017")
-#		if year=="0":
-#			year="2017"
 		if "-" in year:
 		    year="0"
 		medication = database.PersistentMedication.query. \
@@ -327,8 +326,6 @@ import numpy as np
 def view_medication_history(year=None,search_term = None):
 	search_term = request.values.get("search_term",None)
 	year = request.values.get("year","2017")
-#	if year=="0":
-#	    year="2017"
 	plt.style.use('ggplot')
 	scale = .4
 	rcParams['figure.figsize'] = (20*scale,8*scale)
@@ -548,3 +545,40 @@ def delete_invoice(invoice_id):
 def randomword(length):
         '''generate a random string of whatever length, good for filenames'''
         return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+
+@app.route('/autocomplete/<resource>', methods=["GET", "POST"])
+@flask_login.login_required
+def autocomplete_choices(resource):
+	response = dict()
+	if resource=="category":
+		response = [{"id":i.id, "name":i.name} for i in database.Category.query.all() if (i.name!="")&(i.name!=None)]
+	elif resource=="medication":
+		response = [{"id":i.id, "name":i.common_name} for i in database.PersistentMedication.query.all() if i.common_name!=None]
+	else:
+		return "{'error':'Resource not found.'}",404
+	return json.dumps(response)
+
+@app.route("/categories/")
+@flask_login.login_required
+def list_categories():
+	categories = database.Category.query.all()
+	return render_template("categories.html",categories=categories)
+
+@app.route("/categories/<int:category_id>")
+@flask_login.login_required
+def view_category(category_id):
+	category = database.Category.query.get_or_404(category_id)
+	return render_template("category_view.html",category=category)
+
+@app.route("/categories/<int:category_id>/edit", methods=["GET", "POST"])
+@flask_login.login_required
+def edit_category(category_id):
+	category = database.Category.query.get_or_404(category_id)
+	form = CategoryForm(obj=category)
+	if request.method == 'POST' and form.validate():
+		form.populate_obj(category)
+		database.ver_db_session.commit()
+		return redirect(url_for("view_category", category_id=category.id))
+	if request.method=='POST':
+		flash(form.errors)
+	return render_template("category_edit.html", category=category,form=form)

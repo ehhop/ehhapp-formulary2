@@ -32,3 +32,6 @@ class PersistentMedicationForm(FlaskForm):
 	                           choices=[(1, "Yes"), 
 	                           (0, "No")], coerce=bool)
 	category_name = TextField('Category name')
+
+class CategoryForm(FlaskForm):
+	name = TextField("Category name",validators=[validators.Length(min=2,max=255)])

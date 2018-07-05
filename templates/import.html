@@ -1,11 +1,27 @@
 {% extends 'layout.html' %}
 {% block navbar%}
-<li class="inactive"><a href="/medications">Medications</a></li>
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+    		aria-haspopup="true" aria-expanded="false">
+    	Medications <span class="caret"></span></a>
+    <ul class="dropdown-menu">
+	    <li><a href="/medications">Prices</a></li>
+	    <li><a href="/medications/guide">Prescribing guide</a></li>
+	    <li><a href="/categories">Categories</a></li>
+    </ul>
+</li>
 <li class="inactive"><a href="/history">Comparisons</a></li>
 <li class="inactive"><a href="/spending">Spending</a></li>
-<li class="inactive"><a href="/invoices">History</a></li>
-<li class="active"><a href="/import">Import</a></li>
-<li class="inactive"><a href="/export">Export</a></li>
+<li class="dropdown">
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
+    		aria-haspopup="true" aria-expanded="false">
+    	Invoices <span class="caret"></span></a>
+    <ul class="dropdown-menu">
+	    <li><a href="/invoices">History</a></li>
+	    <li><a href="/import">Import</a></li>
+	    <li><a href="/export">Export</a></li>
+    </ul>
+</li>
 {%endblock%}
 {% block title %}Import | ehhapp-formulary2{% endblock %}
 {% block body %}
