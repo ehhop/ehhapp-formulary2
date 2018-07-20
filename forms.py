@@ -28,9 +28,7 @@ class PersistentMedicationForm(FlaskForm):
 	cui = TextField('RxCUI identifier', 
 	                 validators=[validators.Length(max=10)],
 	                 filters=[lambda x: x, filter_digits])
-	prescribable = SelectField('Prescribable', 
-	                           choices=[(1, "Yes"), 
-	                           (0, "No")], coerce=bool)
+	prescribable = SelectField('Prescribable', choices=[(1, "Yes"), (0, "No")], coerce=bool)
 	category_name = TextField('Category name')
 
 class CategoryForm(FlaskForm):

@@ -7,11 +7,17 @@ eg. import 'invoicerecord.py' - test danc
 
 '''
 
-import datetime, collections
+import datetime, collections, json
+
+class CustomEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, datetime.datetime):
+            return {'__datetime__': o.replace(microsecond=0).isoformat()}
+        return {'__{}__'.format(o.__class__.__name__): o.__dict__}
 
 class MedicationRecord(object):
 
-	class transaction():
+	class transaction(object):
 		date = datetime.time()
 		price = float()
 		qty = float()
@@ -22,8 +28,6 @@ class MedicationRecord(object):
 			self.qty = qty if qty else float()
 			self.source = source if source else str()
 			self.originInvoiceHash = originInvoiceHash
-		def __repr__(self):
-			return "Transaction[Date:"+str(self.date)+" Price:"+str(self.price)+" Qty:"+str(self.qty)+"Origin:"+str(self.originInvoiceHash)+"]"
 
 	def __init__(self, pricetable_id=None, name=None, common_name=None,transactions=None,
 		dosage=None, admin=None, category=None, prescribable=None, aliases=None, cui=None):
@@ -54,8 +58,3 @@ class MedicationRecord(object):
 			return 1
 		else:
 			return 0
-
-
-
-	def __repr__(self):
-		return "<MedicationRecord, id=%d, name=%s, entries=%d>" % (self.id, self.name, len(self.transactions))

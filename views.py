@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask.ext.login as flask_login
+from flask.ext.jsonpify import jsonify
 from flask.ext.login import LoginManager, login_required, login_user, \
     logout_user, current_user, UserMixin
 from requests.auth import HTTPBasicAuth
@@ -20,6 +21,7 @@ from forms import *
 from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
 import consolidateRecord
+import invoicerecord
 
 import plotly
 import plotly.graph_objs as go
@@ -133,7 +135,7 @@ def send_js(path):
 	return send_from_directory('assets', path)
 
 @app.route("/medications")
-@flask_login.login_required
+#@flask_login.login_required
 def view_all_medications():
 	#this is an array of type MedicationRecord objects
 	year = request.values.get("year","0")
@@ -160,13 +162,18 @@ def view_all_medications():
 	return render_template("medications.html", year=year,medications=medications)
 
 @app.route("/medications/guide")
-@flask_login.login_required
+#@flask_login.login_required
 def view_prescribing_guide():
+	#tojson = "json"
+	tojson = request.values.get("format","html")
 	medications = database.PersistentMedication.query. \
 		filter_by(prescribable=True).\
 		all()
 	medications = [i.to_class() for i in medications]
 	for m in medications:
+		m.dosage = m.dosage if m.dosage != None else "dose?"
+		m.category = m.category if (m.category != None)&(m.category !="") else "Uncharacterized"
+		m.common_name = m.common_name if m.common_name != None else m.name
 		m.spend = round(sum([t.qty*t.price for t in m.transactions]),2)
 		m.bought = sum([t.qty for t in m.transactions if t.qty>0])
 		m.sold = sum([t.qty for t in m.transactions if t.qty<0])
@@ -174,7 +181,13 @@ def view_prescribing_guide():
 		m.end_price = round(m.transactions[-1].price,2)
 		m.start_price = round(m.transactions[0].price,2)
 		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
-	return render_template("medications_guide.html",medications=medications)
+	if tojson=="json":
+	    for m in medications:
+	        m.transactions = len(m.transactions)
+	    medications = [m.__dict__ for m in medications]
+	    return jsonify(medications)#, default=str)
+	else:
+	    return render_template("medications_guide.html",medications=medications)
 
 @app.route("/medications/<int:pricetable_id>/edit", 
            methods=["GET", "POST"])
@@ -187,6 +200,7 @@ def edit_medication(pricetable_id):
 	                                category_name=medication.category.name)
 	if request.method == 'POST' and form.validate():
 		form.populate_obj(medication)
+		medication.prescribable = True if int(request.form["prescribable"]) == 1 else False
 		medication.category,_ = database.get_or_create(database.Category,
 		                                             name=form.category_name.data)
 		database.ver_db_session.commit()

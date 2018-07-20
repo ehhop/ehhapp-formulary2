@@ -32,7 +32,7 @@
 		{% for groups in medications|groupby("category") %}
 		<h3>{{groups.grouper}}</h3>
 			{% for meds in groups.list|groupby("common_name") %}
-				<h4>{{meds.grouper}}</h4>
+			<h4><a href="/history/?search_term={{meds.grouper}}&year=0" style="color:black">{{meds.grouper}}</a></h4>
 	        	{% for med in meds.list %}
 					<a href="/medications/{{med.id}}?year=0">${{'%0.2f'| format(med.end_price|float)}} ({{med.dosage}})</a>{#<a href="/medications/{{med.id}}/edit" class="btn btn-xs btn-primary" role="button">Edit</a>#}{% if loop.index != meds.list|length %},{% endif %}
 				{% endfor %}
