@@ -9,7 +9,7 @@ for the persistent FormularyDB for EHHOP.
 
 from invoicerecord import MedicationRecord #import the class definition
 from flask_sqlalchemy import * #import sql wrapper functions from Flask web helper lib
-from flask.ext.login import LoginManager, login_required, login_user, \
+from flask_login import LoginManager, login_required, login_user, \
     logout_user, current_user, UserMixin #used for logins (not yet activated)
 import datetime
 from __init__ import app #import init params like where the db is
@@ -40,10 +40,10 @@ def get_all_medication_records():
 
 def save_persistent_record(record,ver_db_session=ver_db_session, commit=True):
     '''save_persistent_record()
-    Description: 
+    Description:
         Saves a MedicationRecord object in the db (abstraction layer)
 
-    Usage: 
+    Usage:
         medrecord = MedicationRecord(id=12345,...)
         save_persistent_record(medrecord)
     '''
@@ -229,7 +229,7 @@ class PersistentMedication(db.Model):
         '''Usage: loads the db object from the shared MedicationRecord object
                 inputs: record (class MedicationRecord)
                 outputs: PersistentMedication
-           Example: 
+           Example:
             medrecord = MedicationRecord(id=12345,...)
             persistentmed = PersistentMedication.from_class(medrecord)
         '''
@@ -249,7 +249,7 @@ class PersistentMedication(db.Model):
                         for i in record.transactions] #makes new MedicationHistory objects in db that correspond to MedicationRecord.transaction objects
         init_db.category, _ = get_or_create(Category,name=record.category) #create or assign an existing category to the medication by name
         init_db.aliases = [MedicationAlias(medication_id=init_db.id,
-                                      name=alias) for alias in record.aliases] # makes new MedicationAlias objects in db that correspond to 
+                                      name=alias) for alias in record.aliases] # makes new MedicationAlias objects in db that correspond to
 									       # MedicationRecord.aliases
         return init_db #make sure to return the PersistentMedication object we just made so we can commit it
 
@@ -258,7 +258,7 @@ class PersistentMedication(db.Model):
                 Inputs: PersistentMedication
                 Outputs: MedicationRecord
 
-        Example: 
+        Example:
             persistentmed = PersistentMedication.query.get(1)
             medrecord = persistentmed.to_class()
         '''
@@ -274,13 +274,13 @@ class PersistentMedication(db.Model):
                                     price=h.price,
                                     qty=h.quantity) for h in self.history.order_by(asc(MedicationHistory.date))] #populate MedicationRecord.transactions
 														 #from PersistentMedication.history
-        record.category = self.category.name 
+        record.category = self.category.name
         record.aliases = [alias.name for alias in self.aliases] #populate MedicationRecord.aliases from PersistentMedication.aliases
         return record #make sure to return the object we just made
 
     @classmethod #this means that a new PersistentMedication record is loaded (so you don't have to)
     def create_or_update(cls,record,ver_db_session=ver_db_session, commit=True):
-        '''Usage: checks if a PersistentMedication exists for the passed MedicationRecord object in the db and 
+        '''Usage: checks if a PersistentMedication exists for the passed MedicationRecord object in the db and
         updates the history accordingly if so.
 
         Example: persistentmed = PersistentMedication.create_or_update(MedicationRecord)
@@ -315,9 +315,9 @@ class PersistentMedication(db.Model):
 class MedicationAlias(db.Model):
     '''
 
-    Description: 
+    Description:
         other names for medications in the database that can be used for mathcing'''
-    __tablename__='MedicationAlias' #table in db this corresponds to 
+    __tablename__='MedicationAlias' #table in db this corresponds to
 
     id = db.Column(db.Integer, primary_key=True,autoincrement=True) #column in db: autoincrementing key (used for SQL joins)
     medication_id = db.Column(db.BigInteger, db.ForeignKey('PersistentMedication.id',
@@ -347,7 +347,7 @@ class MedicationHistory(db.Model):
 
 class Category(db.Model):
     '''the category a type of medication belongs to
-       because this category corresponds to many meds, 
+       because this category corresponds to many meds,
        we put the category in a separate table to make
        it easy to update the category name
     '''
