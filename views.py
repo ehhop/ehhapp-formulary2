@@ -260,6 +260,70 @@ def piechart():
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
 
+@app.route("/insulin")
+@flask_login.login_required
+def insulin_reporting():
+	'''
+	'''
+	#TODO: 1) new template specifically for month
+	# 2) correct query for the info we need:
+	# - datetime, full med_name, and the price paid
+	# export_invoice.py --> look at this to get how data is pulled from the database
+	# do this later
+	#this is an array of type MedicationRecord objects
+	month = request.values.get("month","0")
+	medications = database.PersistentMedication.query. \
+		order_by(database.PersistentMedication.name.asc()).\
+		all()
+	if len(medications)==0:
+		flash("No medication records in db.")
+		return redirect(url_for("view_all_medications"))
+	medications = [i.to_class() for i in medications]
+	if month!="0":
+		medout = []
+		for m in medications:
+			m.transactions = [t for t in m.transactions if t.date.month==month]
+			if len(m.transactions)!=0:
+				medout.append(m)
+		medications = medout
+
+	plt.style.use('ggplot')
+	scale = 0.3
+	rcParams['figure.figsize'] = (8*scale,8*scale)
+	rcParams['figure.dpi'] = 300
+	rcParams["legend.labelspacing"]=0
+	rcParams["legend.columnspacing"] = 0
+	rcParams["legend.shadow"] = False
+	rcParams["legend.frameon"] = False
+	rcParams["legend.borderpad"] = 0
+
+	def my_autopct(pct):
+		return ('%.2f%%' % pct) if pct > 1.5 else ''
+
+	med_df = pd.DataFrame([{"common_name":m.common_name,
+							"price_spent":sum([t.price for t in m.transactions])} for m in medications])
+
+	for i,row in med_df.iterrows():
+		if not row['common_name']:
+			names = ['']
+		elif 'insulin' in row['common_name'].lower():
+			names = ['insulin']
+		else:
+			names = ['Other']
+		med_df.set_value(i,'common_name',names[0])
+
+	data = med_df.pivot_table(index="common_name",values="price_spent").\
+	sort_values("price_spent",ascending=False)["price_spent"]
+
+	labels = [n if v > data.sum() * 0.015 else '' for n, v in zip(data.index, data)]
+
+	fig, ax1 = plt.subplots(1)
+	data.plot.pie(y="price_spent",autopct=my_autopct,labels=labels,title="Percent of Budget Spent",label="",ax=ax1,radius=0.6)
+
+	html_figure = mpld3.fig_to_html(fig)
+
+	return render_template("insulin_piechart.html", year=month,html_figure=html_figure)
+
 import seaborn as sb
 
 @app.route("/medications/<int:pricetable_id>")
