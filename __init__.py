@@ -19,7 +19,7 @@ from flask import Flask, request, redirect, send_from_directory, \
 	session
 from flask_mail import Mail
 from requests.auth import HTTPBasicAuth
-from flask.ext.login import LoginManager, login_required, login_user, \
+from flask_login import LoginManager, login_required, login_user, \
     logout_user, current_user, UserMixin
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import HTTPError

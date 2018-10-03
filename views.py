@@ -4,10 +4,10 @@ import pytz, os, shutil, random, string, sys, time, pandas as pd, mpld3
 from datetime import datetime, timedelta
 import matplotlib.pyplot as plt
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
-import flask.ext.login as flask_login
-from flask.ext.jsonpify import jsonify
-from flask.ext.login import LoginManager, login_required, login_user, \
-    logout_user, current_user, UserMixin
+import flask_login as flask_login
+from flask_jsonpify import jsonify
+from flask_login import LoginManager, login_required, login_user, \
+	logout_user, current_user, UserMixin
 from requests.auth import HTTPBasicAuth
 from requests_oauthlib import OAuth2Session
 from requests.exceptions import HTTPError
@@ -31,44 +31,44 @@ from undo import undo
 import_dirname = "import/"
 
 class Auth:
-    """Google Project Credentials"""
-    CLIENT_ID = google_client_id
-    CLIENT_SECRET = google_client_secret
-    REDIRECT_URI = redirect_uri
-    AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
-    TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
-    USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
-    SCOPE = ['profile', 'email']
+	"""Google Project Credentials"""
+	CLIENT_ID = google_client_id
+	CLIENT_SECRET = google_client_secret
+	REDIRECT_URI = redirect_uri
+	AUTH_URI = 'https://accounts.google.com/o/oauth2/auth'
+	TOKEN_URI = 'https://accounts.google.com/o/oauth2/token'
+	USER_INFO = 'https://www.googleapis.com/userinfo/v2/me'
+	SCOPE = ['profile', 'email']
 
 @login_manager.user_loader
 def load_user(user_id):
-    return database.User.query.get(user_id)
+	return database.User.query.get(user_id)
 """ OAuth Session creation """
 
 def get_google_auth(state=None, token=None):
-    if token:
-        return OAuth2Session(Auth.CLIENT_ID, token=token)
-    if state:
-        return OAuth2Session(
-            Auth.CLIENT_ID,
-            state=state,
-            redirect_uri=Auth.REDIRECT_URI)
-    oauth = OAuth2Session(
-        Auth.CLIENT_ID,
-        redirect_uri=Auth.REDIRECT_URI,
-        scope=Auth.SCOPE)
-    return oauth
+	if token:
+		return OAuth2Session(Auth.CLIENT_ID, token=token)
+	if state:
+		return OAuth2Session(
+			Auth.CLIENT_ID,
+			state=state,
+			redirect_uri=Auth.REDIRECT_URI)
+	oauth = OAuth2Session(
+		Auth.CLIENT_ID,
+		redirect_uri=Auth.REDIRECT_URI,
+		scope=Auth.SCOPE)
+	return oauth
 
 @app.route('/login')
 def login():
-    if current_user.is_authenticated:
-        return redirect(url_for('index'))
-    google = get_google_auth()
-    auth_url, state = google.authorization_url(
-        Auth.AUTH_URI, access_type='offline')
-    session['oauth_state'] = state
-    return render_template('login.html', auth_url=auth_url,
-                           google_client_id = google_client_id)
+	if current_user.is_authenticated:
+		return redirect(url_for('index'))
+	google = get_google_auth()
+	auth_url, state = google.authorization_url(
+		Auth.AUTH_URI, access_type='offline')
+	session['oauth_state'] = state
+	return render_template('login.html', auth_url=auth_url,
+						   google_client_id = google_client_id)
 
 
 @app.route('/gCallback',methods=["POST"])
@@ -115,14 +115,14 @@ def googleOAuthTokenVerify():				# authenticate with Google for Icahn accounts
 @app.route("/logout", methods=["GET", "POST"])
 @flask_login.login_required
 def logout():
-    """Logout the current user."""
-    user = flask_login.current_user
-    user.authenticated = False				# log out in db
-    database.ver_db_session.add(user)
-    database.ver_db_session.commit()
-    flask_login.logout_user()				# delete browser cookie
-    flash("Logged out.")
-    return redirect(url_for("index"))
+	"""Logout the current user."""
+	user = flask_login.current_user
+	user.authenticated = False				# log out in db
+	database.ver_db_session.add(user)
+	database.ver_db_session.commit()
+	flask_login.logout_user()				# delete browser cookie
+	flash("Logged out.")
+	return redirect(url_for("index"))
 
 @app.route("/", methods=['GET'])
 @app.route("/index.html", methods=['GET'])
@@ -182,34 +182,34 @@ def view_prescribing_guide():
 		m.start_price = round(m.transactions[0].price,2)
 		m.pct_change = round(m.transactions[-1].price/m.transactions[0].price*100-100,2)
 	if tojson=="json":
-	    for m in medications:
-	        m.transactions = len(m.transactions)
-	    medications = [m.__dict__ for m in medications]
-	    return jsonify(medications)#, default=str)
+		for m in medications:
+			m.transactions = len(m.transactions)
+		medications = [m.__dict__ for m in medications]
+		return jsonify(medications)#, default=str)
 	else:
-	    return render_template("medications_guide.html",medications=medications)
+		return render_template("medications_guide.html",medications=medications)
 
-@app.route("/medications/<int:pricetable_id>/edit", 
-           methods=["GET", "POST"])
+@app.route("/medications/<int:pricetable_id>/edit",
+		   methods=["GET", "POST"])
 @flask_login.login_required
 def edit_medication(pricetable_id):
 	medication = database.PersistentMedication.query. \
 		filter_by(pricetable_id=pricetable_id).\
 		first_or_404()
 	form = PersistentMedicationForm(obj=medication,
-	                                category_name=medication.category.name)
+									category_name=medication.category.name)
 	if request.method == 'POST' and form.validate():
 		form.populate_obj(medication)
 		medication.prescribable = True if int(request.form["prescribable"]) == 1 else False
 		medication.category,_ = database.get_or_create(database.Category,
-		                                             name=form.category_name.data)
+													 name=form.category_name.data)
 		database.ver_db_session.commit()
-		return redirect(url_for("view_medication", 
-	                       pricetable_id=medication.pricetable_id, year="0"))
+		return redirect(url_for("view_medication",
+						   pricetable_id=medication.pricetable_id, year="0"))
 	if request.method=='POST':
 		flash(form.errors)
-	return render_template("medications_edit.html", 
-	                       med=medication,form=form)
+	return render_template("medications_edit.html",
+						   med=medication,form=form)
 
 @app.route("/spending")
 @app.route("/piechart")
@@ -243,11 +243,11 @@ def piechart():
 	rcParams["legend.borderpad"] = 0
 
 	def my_autopct(pct):
-	    return ('%.2f%%' % pct) if pct > 1.5 else ''
+		return ('%.2f%%' % pct) if pct > 1.5 else ''
 
 	med_df = pd.DataFrame([{"name":m.name,
-	                        "category":m.category.split(" - ")[0].split(",")[0].strip() if m.category!=None else "Other",
-	                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+							"category":m.category.split(" - ")[0].split(",")[0].strip() if m.category!=None else "Other",
+							"price_spent":sum([t.price for t in m.transactions])} for m in medications])
 	data = med_df.pivot_table(index="category",values="price_spent").\
 	sort_values("price_spent",ascending=False)["price_spent"]
 
@@ -268,7 +268,7 @@ def view_medication(pricetable_id):
 	#this is an array of type MedicationRecord objects
 		year = request.values.get("year","0")
 		if "-" in year:
-		    year="0"
+			year="0"
 		medication = database.PersistentMedication.query. \
 			filter_by(pricetable_id=pricetable_id).\
 			first_or_404()
@@ -289,11 +289,16 @@ def view_medication(pricetable_id):
 		N = 1000
 		random_x = np.random.randn(N)
 		random_y = np.random.randn(N)
+		layout = go.Layout(xaxis=dict(domain=[0, 0.45]), yaxis=dict(domain=[0, 0.45]))
 
-		trace = go.Scatter(x = df.index, y = df['price'])
+
+		trace = go.Scatter(x = df.index, y = df['price'], mode='lines+markers', name="'spline'", line=dict(shape='spline',smoothing = 0.5))
 		data = [trace]
+
 		html_figure_plotly = \
 			plotly.offline.plot(data,filename='test.html', output_type='div')
+
+
 
 		return render_template("medications_view.html",
 				medications=medications,year=year,
@@ -341,14 +346,14 @@ def view_medication_history(year=None,search_term = None):
 				meds.extend(med_result)
 			meds = list(set(meds)) #remove dups
 			if len(meds)==0:
-			    flash("No matching history found.")
-			    return redirect(url_for("view_medication_history"))
+				flash("No matching history found.")
+				return redirect(url_for("view_medication_history"))
 			if year=="0":
-			    dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions if t.qty>0])
+				dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions if t.qty>0])
 			else:
-			    for med in meds:
-				    med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
-			    dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions])
+				for med in meds:
+					med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
+				dates = set([str(t.date.year)+"-"+"%02d"%t.date.month for i in meds for t in i.transactions])
 			first_year = min(dates).split("-")[0]
 			last_year = max(dates).split("-")[0]
 			first_month = "01"
@@ -360,9 +365,9 @@ def view_medication_history(year=None,search_term = None):
 			medout = []
 			for med in meds:
 				if year=="0":
-				    med.transactions = [t for t in med.transactions if t.qty>0]
+					med.transactions = [t for t in med.transactions if t.qty>0]
 				else:
-				    med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
+					med.transactions = [t for t in med.transactions if (t.date.year==int(year))&(t.qty>0)]
 				if med.transactions != []:
 					medout.append(med)
 				df = pd.DataFrame([{"date":t.date,"price":t.price,"qty":t.qty} for t in med.transactions])
@@ -411,11 +416,11 @@ def view_medication_history(year=None,search_term = None):
 			rcParams["legend.borderpad"] = 0
 
 			def my_autopct(pct):
-			    return ('%.2f%%' % pct) if pct > 1.5 else ''
+				return ('%.2f%%' % pct) if pct > 1.5 else ''
 
 			med_df = pd.DataFrame([{"name":m.name,
-			                        "category":m.name,
-			                        "price_spent":sum([t.price for t in m.transactions])} for m in medications])
+									"category":m.name,
+									"price_spent":sum([t.price for t in m.transactions])} for m in medications])
 			data = med_df.pivot_table(index="category",values="price_spent").\
 			sort_values("price_spent",ascending=False)["price_spent"]
 
@@ -430,10 +435,10 @@ def view_medication_history(year=None,search_term = None):
 		html_figure1=""
 		html_figure2=""
 	if year=="0":
-	    year = str(first_year)+"-"+str(last_year)
+		year = str(first_year)+"-"+str(last_year)
 	return render_template("medications_view_history.html",
 			medications=meds,year=year,
-	        html_figure1=html_figure1,html_figure2=html_figure2)
+			html_figure1=html_figure1,html_figure2=html_figure2)
 
 @app.route("/export")
 @flask_login.login_required
@@ -524,8 +529,8 @@ def delete_invoice(invoice_id):
 	return redirect(url_for("view_all_invoices"))
 
 def randomword(length):
-        '''generate a random string of whatever length, good for filenames'''
-        return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
+		'''generate a random string of whatever length, good for filenames'''
+		return ''.join(random.choice(string.ascii_lowercase) for i in range(length))
 
 @app.route('/autocomplete/<resource>', methods=["GET", "POST"])
 @flask_login.login_required
@@ -549,7 +554,7 @@ def list_categories():
 @flask_login.login_required
 def view_category(category_id):
 	category = database.Category.query.get_or_404(category_id)
-	return render_template("category_view.html",category=category)
+	return render_template("category_view.html",category=cathegory)
 
 @app.route("/categories/<int:category_id>/edit", methods=["GET", "POST"])
 @flask_login.login_required
