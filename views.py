@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import pytz, os, shutil, random, string, sys, time, pandas as pd, mpld3
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import matplotlib.pyplot as plt
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask_login as flask_login
@@ -14,6 +14,7 @@ from requests.exceptions import HTTPError
 from oauth2client import client as gauthclient
 from oauth2client import crypt
 import json
+import copy
 
 from config import *
 import database
@@ -271,7 +272,8 @@ def insulin_reporting():
 	# export_invoice.py --> look at this to get how data is pulled from the database
 	# do this later
 	#this is an array of type MedicationRecord objects
-	month = request.values.get("month","0")
+	month = request.values.get("month","1")
+	current_year = date.today().year
 	medications = database.PersistentMedication.query. \
 		order_by(database.PersistentMedication.name.asc()).\
 		all()
@@ -282,10 +284,10 @@ def insulin_reporting():
 	if month!="0":
 		medout = []
 		for m in medications:
-			m.transactions = [t for t in m.transactions if t.date.month==month]
+			m.transactions = [t for t in m.transactions if t.date.year==current_year]
 			if len(m.transactions)!=0:
 				medout.append(m)
-		medications = medout
+		med_list = medout
 
 	plt.style.use('ggplot')
 	scale = 0.3
@@ -301,25 +303,25 @@ def insulin_reporting():
 		return ('%.2f%%' % pct) if pct > 1.5 else ''
 
 	med_df = pd.DataFrame([{"common_name":m.common_name,
-							"price_spent":sum([t.price for t in m.transactions])} for m in medications])
-
+							"price":t.price,
+							"datetime":t.date,
+							"category":m.category,} for m in med_list for t in m.transactions])
+	med_df['month'] = med_df.datetime.map(lambda x: x.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
 	for i,row in med_df.iterrows():
-		if not row['common_name']:
-			names = ['']
-		elif 'insulin' in row['common_name'].lower():
-			names = ['insulin']
-		else:
-			names = ['Other']
-		med_df.set_value(i,'common_name',names[0])
+		if row['common_name']:
+			if 'insulin' in row['common_name'].lower():
+				med_df.set_value(i,'category','Insulin')
+				med_df.set_value(i,'common_name','Insulin')
+	data = med_df.pivot_table(values='price',index=['category','month'], aggfunc=sum)\
+		.fillna(0)
+	data.reset_index(level=1, inplace=True)
+	max_month = data.month.unique().max()
+	pie_data = data[data.month == max_month].drop(axis=1, labels='month')
+	pie_data.sort_values(by='price',ascending=False)
 
-	data = med_df.pivot_table(index="common_name",values="price_spent").\
-	sort_values("price_spent",ascending=False)["price_spent"]
-
-	labels = [n if v > data.sum() * 0.015 else '' for n, v in zip(data.index, data)]
-
+	labels = [n if v > pie_data.price.sum() * 0.10 else '' for n, v in zip(pie_data.index, pie_data.price)]
 	fig, ax1 = plt.subplots(1)
-	data.plot.pie(y="price_spent",autopct=my_autopct,labels=labels,title="Percent of Budget Spent",label="",ax=ax1,radius=0.6)
-
+	pie_data.plot.pie(y="price",autopct=my_autopct,labels=labels,title="Percent of Budget Spent",label="",ax=ax1,radius=0.6)
 	html_figure = mpld3.fig_to_html(fig)
 
 	return render_template("insulin_piechart.html", year=month,html_figure=html_figure)
