@@ -15,7 +15,7 @@ from oauth2client import client as gauthclient
 from oauth2client import crypt
 import json
 import copy
-
+import seaborn as sb
 from config import *
 import database
 from forms import *
@@ -260,19 +260,12 @@ def piechart():
 	html_figure = mpld3.fig_to_html(fig)
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
-
 @app.route("/insulin")
 @flask_login.login_required
-def insulin_reporting():
+def data_export(search_name='insulin'):
 	'''
+	Exports a dataframe based on the queried drug in the comparisons tab
 	'''
-	#TODO: 1) new template specifically for month
-	# 2) correct query for the info we need:
-	# - datetime, full med_name, and the price paid
-	# export_invoice.py --> look at this to get how data is pulled from the database
-	# do this later
-	#this is an array of type MedicationRecord objects
-	month = request.values.get("month","1")
 	current_year = date.today().year
 	medications = database.PersistentMedication.query. \
 		order_by(database.PersistentMedication.name.asc()).\
@@ -281,52 +274,29 @@ def insulin_reporting():
 		flash("No medication records in db.")
 		return redirect(url_for("view_all_medications"))
 	medications = [i.to_class() for i in medications]
-	if month!="0":
-		medout = []
-		for m in medications:
-			m.transactions = [t for t in m.transactions if t.date.year==current_year]
-			if len(m.transactions)!=0:
-				medout.append(m)
-		med_list = medout
-
-	plt.style.use('ggplot')
-	scale = 0.3
-	rcParams['figure.figsize'] = (8*scale,8*scale)
-	rcParams['figure.dpi'] = 300
-	rcParams["legend.labelspacing"]=0
-	rcParams["legend.columnspacing"] = 0
-	rcParams["legend.shadow"] = False
-	rcParams["legend.frameon"] = False
-	rcParams["legend.borderpad"] = 0
-
-	def my_autopct(pct):
-		return ('%.2f%%' % pct) if pct > 1.5 else ''
-
-	med_df = pd.DataFrame([{"common_name":m.common_name,
-							"price":t.price,
-							"datetime":t.date,
-							"category":m.category,} for m in med_list for t in m.transactions])
-	med_df['month'] = med_df.datetime.map(lambda x: x.replace(day=1, hour=0, minute=0, second=0, microsecond=0))
+	medout = []
+	for m in medications:
+		m.transactions = [t for t in m.transactions]
+		if len(m.transactions)!=0:
+			medout.append(m)
+	med_list = medout
+	med_df = pd.DataFrame([{"name":m.name,
+							"common_name":m.common_name,
+							"category":m.category,
+							"prescribable":m.prescribable,
+							"unit_price":t.price,
+                            'qty':t.qty,
+							"total_price":t.qty*t.price,
+							"datetime":t.date,} for m in med_list for t in m.transactions])
+	med_df['month'] = med_df.datetime.map(lambda x: x.replace(hour=0, minute=0, second=0, microsecond=0))
 	for i,row in med_df.iterrows():
 		if row['common_name']:
 			if 'insulin' in row['common_name'].lower():
-				med_df.set_value(i,'category','Insulin')
-				med_df.set_value(i,'common_name','Insulin')
-	data = med_df.pivot_table(values='price',index=['category','month'], aggfunc=sum)\
-		.fillna(0)
-	data.reset_index(level=1, inplace=True)
-	max_month = data.month.unique().max()
-	pie_data = data[data.month == max_month].drop(axis=1, labels='month')
-	pie_data.sort_values(by='price',ascending=False)
-
-	labels = [n if v > pie_data.price.sum() * 0.10 else '' for n, v in zip(pie_data.index, pie_data.price)]
-	fig, ax1 = plt.subplots(1)
-	pie_data.plot.pie(y="price",autopct=my_autopct,labels=labels,title="Percent of Budget Spent",label="",ax=ax1,radius=0.6)
-	html_figure = mpld3.fig_to_html(fig)
-
-	return render_template("insulin_piechart.html", year=month,html_figure=html_figure)
-
-import seaborn as sb
+				med_df.set_value(i,'category','insulin')
+				med_df.set_value(i,'common_name','insulin')
+	med_df.sort_values(by=['name',"datetime"],ascending=False, inplace=True )
+	filtered = med_df[med_df['common_name'] == 'insulin']
+	filtered.to_csv('ehhop_prescrip_{}.csv'.format(datetime.now()))
 
 @app.route("/medications/<int:pricetable_id>")
 @flask_login.login_required
