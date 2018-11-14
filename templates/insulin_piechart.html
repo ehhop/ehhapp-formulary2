@@ -32,9 +32,9 @@
 		    <h1>Spending Pie Chart</h1>
 	    </div>
 	    <form method="GET" action="/piechart" class="form-inline">
-	    	<label for="year">Year to analyze</label>
+	    	<label for="year">year to analyze</label>
 	    	<select name="year" class="form-control" onchange="this.form.submit()">
-	    	 {% for y in range(2014,2019) %}
+	    	 {% for y in range(1,12) %}
 	    	 {% if y==year|int %}
 			  <option value="{{y}}" selected="selected">{{y}}</option>
 			 {% else %}

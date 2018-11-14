@@ -260,9 +260,9 @@ def piechart():
 	html_figure = mpld3.fig_to_html(fig)
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
-@app.route("/insulin")
+@app.route("/testing_insulin")
 @flask_login.login_required
-def data_export(search_name='insulin'):
+def data_export(search_name=None):
 	'''
 	Exports a dataframe based on the queried drug in the comparisons tab
 	'''
@@ -294,9 +294,11 @@ def data_export(search_name='insulin'):
 			if 'insulin' in row['common_name'].lower():
 				med_df.set_value(i,'category','insulin')
 				med_df.set_value(i,'common_name','insulin')
-	med_df.sort_values(by=['name',"datetime"],ascending=False, inplace=True )
-	filtered = med_df[med_df['common_name'] == 'insulin']
-	filtered.to_csv('ehhop_prescrip_{}.csv'.format(datetime.now()))
+	med_df.sort_values(by=['name',"datetime"],ascending=True, inplace=True )
+	if search_name:
+		filtered_data = med_df[med_df['common_name'] == search_name]
+	else: filtered_data = med_df
+	return render_template("testing_insulin.html", dataframe = filtered_data)
 
 @app.route("/medications/<int:pricetable_id>")
 @flask_login.login_required
