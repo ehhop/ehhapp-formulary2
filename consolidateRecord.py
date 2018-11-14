@@ -82,6 +82,9 @@ def saveinvoicetodb(file, uploaded_name=""):
     invoice_db.properties = json.dumps(properties)
     invoice_db.filename=file
     invoice_db.date_added = datetime.datetime.now()
+
+    print(ds.shape)
+
     for ix,row in ds.iterrows(): #populate invoicerecords with data from invoice's rows
         ## FOR ROW IN THE INVOICE ##
         newobj = database.InvoiceRecord(invoice_id=invoice_db.id) #create a new DB InvoiceRecord obj
@@ -95,8 +98,11 @@ def saveinvoicetodb(file, uploaded_name=""):
     data = dict() ## ???
 
     originInvoiceHash = hashMe
+    print(ds.shape)
     for ix,row in ds.iterrows(): #iterate through each row in invoice XLS (WHY NO INVOICERECORD HERE WTF)
-        pricetable_id = int(row["Item No"])           #Medication ID
+        #TEST
+        pricetable_id = int(row["Item No"]) if (type(row["Item No"]) == int) else \
+            int(''.join([str(ord(x)-48) for x in row["Item No"]]))   #Medication ID
 
         if numpy.isnan(pricetable_id): #if no pricetable id, it's useless
             continue
@@ -174,5 +180,5 @@ def main(filename, uploaded_name=""):
         return "Rejected invoice: error message: %s" % str(err),False
 
 if __name__ == '__main__':
-        saveinvoicetodb("invoice.xls")
+        #saveinvoicetodb("ehhop_august_2018.xls")
         print("Done reading all records")
