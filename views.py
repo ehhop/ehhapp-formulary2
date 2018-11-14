@@ -554,7 +554,7 @@ def list_categories():
 @flask_login.login_required
 def view_category(category_id):
 	category = database.Category.query.get_or_404(category_id)
-	return render_template("category_view.html",category=cathegory)
+	return render_template("category_view.html",category=category)
 
 @app.route("/categories/<int:category_id>/edit", methods=["GET", "POST"])
 @flask_login.login_required
