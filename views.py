@@ -260,6 +260,7 @@ def piechart():
 	html_figure = mpld3.fig_to_html(fig)
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
+
 @app.route("/testing_insulin")
 @flask_login.login_required
 def data_export(search_name=None):
@@ -296,9 +297,13 @@ def data_export(search_name=None):
 				med_df.set_value(i,'common_name','insulin')
 	med_df.sort_values(by=['name',"datetime"],ascending=True, inplace=True )
 	if search_name:
-		filtered_data = med_df[med_df['common_name'] == search_name]
-	else: filtered_data = med_df
-	return render_template("testing_insulin.html", dataframe = filtered_data)
+		drug_categories = search_name
+		drug_names = med_df[med_df['common_name'] == search_name].name
+	else:
+		drug_categories = filtered_data.common_name.sort_values(ascending=True, inplace=True)
+		drug_names = filtered_data.name.sort_values(ascending=True, inplace=True)
+
+	return render_template("testing_insulin.html", drug_names = drug_names, drug_categories = drug_categories)
 
 @app.route("/medications/<int:pricetable_id>")
 @flask_login.login_required

@@ -36,7 +36,7 @@ d{% extends 'layout.html' %}
 		    	<div class="form-group col-md-4">
 			    	<label for="drug_category">Drug Categories:</label>
             <select name="drug_category" class="form-control">
-            {% for m in dataframe.category.unique() %}
+            {% for m in drug_categories %}
 					  <option value=med>{{ m }}</option>
             {% endfor %}
           </select>
@@ -44,7 +44,7 @@ d{% extends 'layout.html' %}
 			    <div class="form-group col-md-3">
 			    	<label for="drug_names">Drug Names</label>
 			    	<select name="drug_names" class="form-control">
-            {% for m in dataframe.name.unique() %}
+            {% for m in drug_names %}
 					  <option value=med>{{ m }}</option>
             {% endfor %}
 					</select>
