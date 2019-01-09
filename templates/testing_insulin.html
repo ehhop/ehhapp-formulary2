@@ -31,29 +31,19 @@ d{% extends 'layout.html' %}
 	    <div class="page-header">
 		    <h1>History comparison tool</h1>
 	    </div>
-	    <form method="GET" action="/insulin_testing?">
-	    	<div class="form-row">
-		    	<div class="form-group col-md-4">
-			    	<label for="drug_category">Drug Categories:</label>
-            <select name="drug_category" class="form-control">
-            {% for m in drug_categories %}
-					  <option value=med>{{ m }}</option>
-            {% endfor %}
-          </select>
-			   </div>
-			    <div class="form-group col-md-3">
-			    	<label for="drug_names">Drug Names</label>
-			    	<select name="drug_names" class="form-control">
-            {% for m in drug_names %}
-					  <option value=med>{{ m }}</option>
-            {% endfor %}
-					</select>
-				</div>
-			</div>
+	    <form method="GET" action="/testing_insulin?">
+         <select class="selectpicker" multiple col-md-6>
+          <option value="" disabled selected>Choose your Drugz</option>
+          {% for m in drug_names %}
+          <option value=med>{{ m }}</option>
+          {% endfor %}
+          </select> 
+
 			<div class="form-group row">
-    			<div class="col-sm-10">
-				<button class="btn btn-primary" type="submit">Search</button>
-			</div></div>
+    	<div class="col-sm-10">
+      <br>
+    	<button class="btn btn-primary" type="submit" onclick="myfunction()">Display Results</button>
+		  </div></div>
 	    </form>
 
 

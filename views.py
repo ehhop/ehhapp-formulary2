@@ -18,6 +18,10 @@ import copy
 import seaborn as sb
 from config import *
 import database
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+
 from forms import *
 from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
@@ -261,6 +265,7 @@ def piechart():
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
 
+####### Dan's Hacky Edits #########
 @app.route("/testing_insulin")
 @flask_login.login_required
 def data_export(search_name=None):
@@ -300,10 +305,12 @@ def data_export(search_name=None):
 		drug_categories = search_name
 		drug_names = med_df[med_df['common_name'] == search_name].name
 	else:
-		drug_categories = filtered_data.common_name.sort_values(ascending=True, inplace=True)
-		drug_names = filtered_data.name.sort_values(ascending=True, inplace=True)
+		drug_categories = med_df.common_name.sort_values(ascending=True)
+		drug_names = med_df.name.sort_values(ascending=True)
 
-	return render_template("testing_insulin.html", drug_names = drug_names, drug_categories = drug_categories)
+	return render_template("testing_insulin.html", drug_names = drug_names.unique(), drug_categories = drug_categories.unique())
+
+####### Dan's Hacky Edits ########
 
 @app.route("/medications/<int:pricetable_id>")
 @flask_login.login_required
