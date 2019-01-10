@@ -1,7 +1,7 @@
-d{% extends 'layout.html' %}
+{% extends 'layout.html' %}
 {% block navbar%}
 <li class="dropdown">
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
     		aria-haspopup="true" aria-expanded="false">
     	Medications <span class="caret"></span></a>
     <ul class="dropdown-menu">
@@ -12,8 +12,9 @@ d{% extends 'layout.html' %}
 </li>
 <li class="inactive"><a href="/history">Comparisons</a></li>
 <li class="inactive"><a href="/spending">Spending</a></li>
+<li class="inactive"><a href="/drug_history">Drug History</a></li>
 <li class="dropdown">
-    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" 
     		aria-haspopup="true" aria-expanded="false">
     	Invoices <span class="caret"></span></a>
     <ul class="dropdown-menu">
@@ -29,34 +30,31 @@ d{% extends 'layout.html' %}
 {% endmacro %}
 {% block body %}
 	    <div class="page-header">
-		    <h1>History comparison tool</h1>
+		    <h1>Spending Pie Chart</h1>
 	    </div>
-	    <form method="GET" action="/testing_insulin?">
-         <select class="selectpicker" multiple col-md-6 name='drugs'>
-          <option value="" disabled selected>Choose your Drugz</option>
-          {% for m in drug_names %}
-          <option> {{ m }}</option>
-          {% endfor %}
-          </select>
-
-          <!-- value=med> -->
-
-			<div class="form-group row">
-    	<div class="col-sm-10">
-      <br>
-      <button class="btn btn-primary" type="submit" id="display">Display Results</button> 
-      <script> 
-
-      function displayTable() { document.getElementById("display").innerHTML = drug_dataframe; }
-      </script>
-      <h1> Drugs</h1>
-      <h2> {{ drug_dataframe | safe}} </h2>
-      <form action="/testing_insulin?">
-      
-      </div></div>
-      </form>
-		  </div></div>
+	    <form method="GET" action="/piechart" class="form-inline">
+	    	<label for="year">Year to analyze</label>
+	    	<select name="year" class="form-control" onchange="this.form.submit()">
+	    	 {% for y in range(2014,2019) %}
+	    	 {% if y==year|int %}
+			  <option value="{{y}}" selected="selected">{{y}}</option>
+			 {% else %}
+			   <option value="{{y}}">{{y}}</option>
+			 {% endif %}
+			 {% endfor %}
+			 {% if year=="0" %}
+			 	<option value="0" selected="selected">All</option>
+			 {% else %}
+			 	<option value="0">All</option>
+			 {% endif %}
+			</select>
 	    </form>
-
+	    <div class="row">
+	    <div class="col-md-2"></div>
+    	<div class="col-md-8">
+    	{{html_figure|safe}}
+    	</div>
+    	<div class="col-md-2"></div>
+	    </div>
 
 {% endblock %}
