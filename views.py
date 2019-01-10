@@ -266,12 +266,17 @@ def piechart():
 	return render_template("piechart.html", year=year,html_figure=html_figure)
 
 ####### Dan's Hacky Edits #########
-@app.route("/testing_insulin")
+@app.route("/testing_insulin", methods=['POST', 'GET'])
 @flask_login.login_required
-def data_export(search_name=None):
+def data_export():
 	'''
 	Exports a dataframe based on the queried drug in the comparisons tab
 	'''
+
+	try:
+		search_name = request.args.to_dict(flat=False)['drugs']
+	except KeyError:
+		search_name = []
 	current_year = date.today().year
 	medications = database.PersistentMedication.query. \
 		order_by(database.PersistentMedication.name.asc()).\
@@ -300,15 +305,15 @@ def data_export(search_name=None):
 			if 'insulin' in row['common_name'].lower():
 				med_df.set_value(i,'category','insulin')
 				med_df.set_value(i,'common_name','insulin')
-	med_df.sort_values(by=['name',"datetime"],ascending=True, inplace=True )
-	if search_name:
-		drug_categories = search_name
-		drug_names = med_df[med_df['common_name'] == search_name].name
+	med_df.sort_values(by=['name',"datetime"],ascending=True, inplace=True)
+	drug_names = med_df.name.sort_values(ascending=True)
+	if len(search_name)>0:
+		drug_data_output = med_df[med_df['name'].isin(search_name)] 
 	else:
-		drug_categories = med_df.common_name.sort_values(ascending=True)
-		drug_names = med_df.name.sort_values(ascending=True)
-
-	return render_template("testing_insulin.html", drug_names = drug_names.unique(), drug_categories = drug_categories.unique())
+		drug_data_output = med_df.head(20)
+	output = drug_data_output.to_html(escape=False)
+	print(search_name)
+	return render_template("testing_insulin.html", drug_names = drug_names.unique(), drug_dataframe = output)
 
 ####### Dan's Hacky Edits ########
 

@@ -32,17 +32,29 @@ d{% extends 'layout.html' %}
 		    <h1>History comparison tool</h1>
 	    </div>
 	    <form method="GET" action="/testing_insulin?">
-         <select class="selectpicker" multiple col-md-6>
+         <select class="selectpicker" multiple col-md-6 name='drugs'>
           <option value="" disabled selected>Choose your Drugz</option>
           {% for m in drug_names %}
-          <option value=med>{{ m }}</option>
+          <option> {{ m }}</option>
           {% endfor %}
-          </select> 
+          </select>
+
+          <!-- value=med> -->
 
 			<div class="form-group row">
     	<div class="col-sm-10">
       <br>
-    	<button class="btn btn-primary" type="submit" onclick="myfunction()">Display Results</button>
+      <button class="btn btn-primary" type="submit" id="display">Display Results</button> 
+      <script> 
+
+      function displayTable() { document.getElementById("display").innerHTML = drug_dataframe; }
+      </script>
+      <h1> Drugs</h1>
+      <h2> {{ drug_dataframe | safe}} </h2>
+      <form action="/testing_insulin?">
+      
+      </div></div>
+      </form>
 		  </div></div>
 	    </form>
 
