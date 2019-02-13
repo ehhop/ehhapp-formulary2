@@ -1,7 +1,7 @@
 import matplotlib
 matplotlib.use('Agg')
 import pytz, os, shutil, random, string, sys, time, pandas as pd, mpld3
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import matplotlib.pyplot as plt
 from flask import render_template, flash, send_from_directory, request, redirect, url_for, session
 import flask_login as flask_login
@@ -14,9 +14,14 @@ from requests.exceptions import HTTPError
 from oauth2client import client as gauthclient
 from oauth2client import crypt
 import json
-
+import copy
+import seaborn as sb
 from config import *
 import database
+import dash
+import dash_core_components as dcc
+import dash_html_components as html
+
 from forms import *
 from __init__ import app, login_manager
 from exportInvoiceData import exportrecord
@@ -260,7 +265,57 @@ def piechart():
 
 	return render_template("piechart.html", year=year,html_figure=html_figure)
 
-import seaborn as sb
+####### Dan's Hacky Edits #########
+@app.route("/testing_insulin", methods=['POST', 'GET'])
+@flask_login.login_required
+def data_export():
+	'''
+	Exports a dataframe based on the queried drug in the comparisons tab
+	'''
+
+	try:
+		search_name = request.args.to_dict(flat=False)['drugs']
+	except KeyError:
+		search_name = []
+	current_year = date.today().year
+	medications = database.PersistentMedication.query. \
+		order_by(database.PersistentMedication.name.asc()).\
+		all()
+	if len(medications)==0:
+		flash("No medication records in db.")
+		return redirect(url_for("view_all_medications"))
+	medications = [i.to_class() for i in medications]
+	medout = []
+	for m in medications:
+		m.transactions = [t for t in m.transactions]
+		if len(m.transactions)!=0:
+			medout.append(m)
+	med_list = medout
+	med_df = pd.DataFrame([{"name":m.name,
+							"common_name":m.common_name,
+							"category":m.category,
+							"prescribable":m.prescribable,
+							"unit_price":t.price,
+                            'qty':t.qty,
+							"total_price":t.qty*t.price,
+							"datetime":t.date,} for m in med_list for t in m.transactions])
+	med_df['month'] = med_df.datetime.map(lambda x: x.replace(hour=0, minute=0, second=0, microsecond=0))
+	for i,row in med_df.iterrows():
+		if row['common_name']:
+			if 'insulin' in row['common_name'].lower():
+				med_df.set_value(i,'category','insulin')
+				med_df.set_value(i,'common_name','insulin')
+	med_df.sort_values(by=['name',"datetime"],ascending=True, inplace=True)
+	drug_names = med_df.name.sort_values(ascending=True)
+	if len(search_name)>0:
+		drug_data_output = med_df[med_df['name'].isin(search_name)] 
+	else:
+		drug_data_output = med_df.head(20)
+	output = drug_data_output.to_html(escape=False)
+	print(search_name)
+	return render_template("testing_insulin.html", drug_names = drug_names.unique(), drug_dataframe = output)
+
+####### Dan's Hacky Edits ########
 
 @app.route("/medications/<int:pricetable_id>")
 @flask_login.login_required
