@@ -266,7 +266,7 @@ def piechart():
 	return render_template("piechart.html", year=year,html_figure=html_figure)
 
 ####### Dan's Hacky Edits #########
-@app.route("/testing_insulin", methods=['POST', 'GET'])
+@app.route("/drug_history", methods=['POST', 'GET'])
 @flask_login.login_required
 def data_export():
 	'''
@@ -311,9 +311,10 @@ def data_export():
 		drug_data_output = med_df[med_df['name'].isin(search_name)] 
 	else:
 		drug_data_output = med_df.head(20)
-	output = drug_data_output.to_html(escape=False)
-	print(search_name)
-	return render_template("testing_insulin.html", drug_names = drug_names.unique(), drug_dataframe = output)
+	output = drug_data_output.to_html(classes=['table', 'table-hover', 'table-dark'], escape=False)
+	csv_output = drug_data_output.to_csv('templates/drug_history.csv')
+	print(csv_output)
+	return render_template("drug_history.html", drug_names = drug_names.unique(), drug_dataframe = output)
 
 ####### Dan's Hacky Edits ########
 
